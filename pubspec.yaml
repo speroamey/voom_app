@@ -3,6 +3,9 @@ description: A new Flutter project.
 
 dependencies:
   xml: "^3.0.0"
+  shared_preferences: "^0.4.1"
+  connectivity: "^0.3.0"
+  simple_permissions: "^0.1.2"
   flutter:
     sdk: flutter
 
