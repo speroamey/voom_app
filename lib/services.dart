@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/src/enums.dart';
@@ -7,6 +9,8 @@ import 'package:xml/xml/nodes/node.dart';
 
 class Services {
   Map<String, Person> _persons = {};
+  StreamController<List<Person>> _personsStream =
+      new StreamController<List<Person>>();
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
   static Services _instance;
@@ -20,6 +24,8 @@ class Services {
   String name;
 
   String _host = '192.168.0.101';
+
+  String title;
 
   Services._() {
     _url = "ws://$_host:5280/xmpp";
@@ -132,7 +138,10 @@ class Services {
 
   sendPresence() {
     if (!this._connection.connected) return;
-    if (this.lat == null || this.lon == null || this.name == null) return;
+    if (this.lat == null ||
+        this.lon == null ||
+        this.name == null ||
+        this.title == null) return;
     _connection.sendPresence(Strophe
         .$pres({'id': this._connection.getUniqueId("sendOnLine")})
         .c('data')
@@ -144,6 +153,9 @@ class Services {
         .up()
         .c('name')
         .t(this.name)
+        .up()
+        .c('title')
+        .t(this.title)
         .up()
         .tree());
   }
@@ -157,8 +169,17 @@ class Services {
       from = Strophe.getBareJidFromJid(from);
       if (type == 'unavailable') {
         this.deletePerson(from);
-      } else {
-        this._addOrUpdatePerson(from);
+      } else if (id.endsWith('sendOnLine') && type.isEmpty) {
+        String phone = Strophe.getNodeFromJid(from);
+        List<XmlElement> lat = presence.findAllElements('lat').toList();
+        List<XmlElement> lon = presence.findAllElements('lon').toList();
+        List<XmlElement> name = presence.findAllElements('name').toList();
+        List<XmlElement> title = presence.findAllElements('title').toList();
+        if (title.length == 0 || lat.length == 0 || lon.length == 0)
+          return true;
+        Person p = new Person(name.length > 0 ? name[0].text : '', phone,
+            double.parse(lat[0].text), double.parse(lon[0].text));
+        this._addOrUpdatePerson(p);
       }
       return true;
     }, null, 'presence');
@@ -305,20 +326,56 @@ class Services {
     return elNamespace;
   }
 
+  Stream<List<Person>> getPersons() {
+    _personsStream.add(_sortPersons());
+    return _personsStream.stream;
+  }
+
+  List<Person> _sortPersons([List<Person> listToSort]) {
+    List<Person> list;
+    if (listToSort == null) {
+      list = new List();
+      list.addAll(this._persons.values.toList());
+    } else {
+      list = listToSort;
+    }
+    if (list.isEmpty) return [];
+    int compareTo;
+    list.sort((Person a, Person b) {
+      compareTo = a.distance.compareTo(b.distance);
+      if (compareTo == 0)
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      else
+        return -(compareTo);
+    });
+    //this.personStreamed();
+    return list;
+  }
+
   addMessages(AppMessage msg) {
-    if (msg == null) return;
+    if (msg == null || msg.from == null) return;
     this._messages[msg.from] = this._messages[msg.from] ?? [];
     this._messages[msg.from].add(msg);
   }
 
   void deletePerson(String from) {
+    if (from == null || from.isEmpty) return;
     this._persons.remove(from);
     this.deleteAllMessage(from);
+    this._personsStream.add(this._sortPersons());
   }
 
   void deleteAllMessage(String from) {
     this._messages.remove(from);
   }
 
-  void _addOrUpdatePerson(String from) {}
+  void _addOrUpdatePerson(Person person) {
+    if (person == null || person.phone == null) return;
+    this._persons[person.phone] = person;
+    this._personsStream.add(this._sortPersons());
+  }
+
+  updatePersonField() {
+    this._personsStream.add(this._sortPersons());
+  }
 }

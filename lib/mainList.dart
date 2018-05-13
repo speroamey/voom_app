@@ -9,6 +9,7 @@ import 'package:voom_app/searchbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:simple_permissions/simple_permissions.dart';
+import 'package:voom_app/services.dart';
 import 'package:voom_app/src/theme.dart';
 
 class MainListe extends StatefulWidget {
@@ -28,16 +29,7 @@ class _MainListeState extends State<MainListe> {
   );
   List<bool> _data = new List<bool>();
   static const geoKey = "AIzaSyD3t95XyJYnfRbP4mQHNIqJPxj5V9jkJ6w";
-
-  final List<Person> Drivers = [
-    new Person('Toto', "1345151", 12.2, 6.0),
-    new Person('Tato', "1345151", 12.2, 6.0),
-    new Person('Noto', "1345151", 12.2, 6.0),
-    new Person('Voto', "1345151", 12.2, 6.0),
-    new Person('Poto', "1345151", 12.2, 6.0),
-    new Person('Eoto', "1345151", 12.2, 6.0),
-    new Person('Loto', "1345151", 12.2, 6.0)
-  ];
+  List<Person> _contacts = [];
 
   var driver = new Map();
   GlobalKey<ScaffoldState> _scalfoldKey = new GlobalKey<ScaffoldState>();
@@ -78,23 +70,34 @@ class _MainListeState extends State<MainListe> {
 
   @override
   Widget build(BuildContext context) {
+    Stream<List<Person>> contacts = Services.instance().getPersons();
     return new Scaffold(
         key: _scalfoldKey,
         appBar: _buildAppBar(),
-        body: new Container(
-            decoration: new BoxDecoration(color: Colors.grey.shade200),
-            child: new ListView.builder(
-              itemBuilder: (BuildContext context, int index) {
-                bool isSelected = this._contactOptionsPinned.contains(index);
-                return new DriversList(this.Drivers[index], isSelected, index,
-                    _onTap, _onLongPress);
-              },
-              itemCount: this.Drivers.length,
-            )));
+        body: new StreamBuilder(
+            stream: contacts,
+            builder:
+                (BuildContext context, AsyncSnapshot<List<Person>> snapchot) {
+              if (snapchot.hasError || snapchot.data == null) {
+                return new Center(
+                  child: new CircularProgressIndicator(),
+                );
+              }
+              _contacts = snapchot.data;
+              return new Container(
+                  decoration: new BoxDecoration(color: Colors.grey.shade200),
+                  child: new ListView.builder(
+                      itemBuilder: (BuildContext context, int index) {
+                        bool isSelected =
+                            this._contactOptionsPinned.contains(index);
+                        return new DriversList(_contacts[index], isSelected,
+                            index, _onTap, _onLongPress);
+                      },
+                      itemCount: _contacts.length));
+            }));
   }
 
   _onLongPress(int index) {
-    print('onLongPress $index');
     this._pressedToOptions(index);
   }
 
@@ -119,7 +122,7 @@ class _MainListeState extends State<MainListe> {
       Navigator
           .of(context)
           .push(new MaterialPageRoute(builder: (BuildContext cxt) {
-        return new ChatPage(this.Drivers[i]);
+        return new ChatPage(_contacts[i]);
       }));
     } else {
       _pressedToOptions(i);
