@@ -278,7 +278,7 @@ class StanzaBuilder {
     for (int i = 1; i < this.node.length; i++) {
       currentNode = currentNode.children[this.node[i]];
     }
-    currentNode.children.add(Strophe.copyElement(new xml.XmlText(text)));
+    currentNode.children.add(Strophe.copyElement(new xml.XmlText(text ?? '')));
     return this;
   }
 
@@ -634,6 +634,7 @@ class StropheConnection {
   XmlInputCallback _xmlOutputCallback = (xml.XmlElement elem) => {};
 
   RawInputCallback _rawInputCallback = (String elem) => {};
+  RawInputCallback _connexionErrorInputCallback = (String error) => {};
 
   RawInputCallback _rawOutputCallback = (String elem) => {};
 
@@ -1174,6 +1175,15 @@ class StropheConnection {
   XmlInputCallback get xmlInput {
     return this._xmlInputCallback;
   }
+
+  set connexionError(RawInputCallback callback) {
+    this._connexionErrorInputCallback = callback;
+  }
+
+  RawInputCallback get connexionError {
+    return this._connexionErrorInputCallback;
+  }
+
   /* jshint unused:true */
 
   /** Function: xmlOutput

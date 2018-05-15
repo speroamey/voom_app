@@ -4,13 +4,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:voom_app/chat.dart';
+import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/searchbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 import 'package:voom_app/services.dart';
-import 'package:voom_app/src/theme.dart';
+import 'package:voom_app/theme.dart';
 
 class MainListe extends StatefulWidget {
   @override
@@ -43,22 +44,28 @@ class _MainListeState extends State<MainListe> {
       bool request = await SimplePermissions
           .requestPermission(Permission.AccessFineLocation);
       if (!request) {
-        print("Vous devez activer la géolocalisation");
         _scalfoldKey.currentState.showSnackBar(new SnackBar(
             content: new Text("Vous devez activer la géolocalisation")));
+        Navigator.of(context).pushAndRemoveUntil(
+            new MaterialPageRoute(builder: (BuildContext context) {
+          return new NoLocation();
+        }), ModalRoute.withName('/no-location'));
         return;
       }
     }
     Location location = new Location();
-
-// Platform messages may fail, so we use a try/catch PlatformException.
     try {
       _currentLocation = await location.getLocation;
+      print("_currentLocation $_currentLocation");
+      /* Services.instance().lat = _currentLocation['latitude'];
+      Services.instance().lon = _currentLocation['longitude']; */
     } on PlatformException {
       _currentLocation = {};
     }
     location.onLocationChanged.listen((Map<String, double> currentLocation) {
       _currentLocation = currentLocation;
+      /*  Services.instance().lat = _currentLocation['latitude'];
+      Services.instance().lon = _currentLocation['longitude']; */
     });
   }
 
@@ -70,7 +77,7 @@ class _MainListeState extends State<MainListe> {
 
   @override
   Widget build(BuildContext context) {
-    Stream<List<Person>> contacts = Services.instance().getPersons();
+    Stream<List<Person>> contacts = Services.instance().getPersons(_search);
     return new Scaffold(
         key: _scalfoldKey,
         appBar: _buildAppBar(),
@@ -79,9 +86,7 @@ class _MainListeState extends State<MainListe> {
             builder:
                 (BuildContext context, AsyncSnapshot<List<Person>> snapchot) {
               if (snapchot.hasError || snapchot.data == null) {
-                return new Center(
-                  child: new CircularProgressIndicator(),
-                );
+                return new Center(child: new CircularProgressIndicator());
               }
               _contacts = snapchot.data;
               return new Container(
@@ -117,7 +122,6 @@ class _MainListeState extends State<MainListe> {
   }
 
   _onTap(int i) {
-    print('details');
     if (!_contactsOptions) {
       Navigator
           .of(context)
@@ -150,9 +154,9 @@ class _MainListeState extends State<MainListe> {
           actions: <Widget>[
             new PopupMenuButton<WhyFarther>(
               onSelected: (WhyFarther result) {
-                /*  setState(() {
-                  _selection = result;
-                }); */
+                if (result == WhyFarther.Note) {
+                  _showNoteDialog();
+                }
               },
               itemBuilder: (BuildContext context) =>
                   <PopupMenuEntry<WhyFarther>>[
@@ -199,7 +203,20 @@ class _MainListeState extends State<MainListe> {
                   setState(() {
                     this._isSearch = true;
                   });
-                })
+                }),
+            new PopupMenuButton<ActionsMenu>(
+              onSelected: (ActionsMenu result) {
+                /*  setState(() {
+                                    _selection = result;
+                                  }); */
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<ActionsMenu>>[
+                    const PopupMenuItem<ActionsMenu>(
+                        value: ActionsMenu.covoiturage,
+                        child: const Text('Co-voiturages'))
+                  ],
+            )
           ]);
     }
     return appBar;
@@ -209,6 +226,50 @@ class _MainListeState extends State<MainListe> {
     setState(() {
       _search = search;
     });
+  }
+
+  void _showNoteDialog() {
+    String str = '';
+    if (_contactOptionsPinned.length == 1) {
+      str = 'Noter ';
+    } else {
+      str = "Noter les ${_contactOptionsPinned.length} persons";
+    }
+    final phoneNumber = new TextFormField(
+        keyboardType: TextInputType.number,
+        autofocus: true,
+        onFieldSubmitted: (String value) {
+          //_onLogin();
+        },
+        decoration: InputDecoration(
+            labelText: "votre note",
+            contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0)));
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext ctx) {
+          return new SimpleDialog(
+              titlePadding: new EdgeInsets.all(0.0),
+              contentPadding: new EdgeInsets.only(
+                  top: 12.0, bottom: 16.0, left: 10.0, right: 10.0),
+              title: new Container(
+                  padding: new EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 18.0),
+                  color: secondaryColor,
+                  child: new Text("$str",
+                      style: new TextStyle(
+                          fontSize: 15.0, fontWeight: FontWeight.w600))),
+              children: <Widget>[
+                new Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: phoneNumber,
+                ),
+                new ButtonTheme.bar(
+                    child: new ButtonBar(children: <Widget>[
+                  new FlatButton(child: new Text("Valider"), onPressed: () {})
+                ]))
+              ]);
+        });
   }
 }
 
@@ -265,7 +326,8 @@ class DriversList extends StatelessWidget {
                             child: new Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                              new Text(driver.name,
+                              new Text(driver.name ?? driver.phone,
+                                  overflow: TextOverflow.ellipsis,
                                   style: Theme
                                       .of(context)
                                       .textTheme
@@ -275,6 +337,7 @@ class DriversList extends StatelessWidget {
                                           fontWeight: FontWeight.w400,
                                           color: Colors.black54)),
                               new Text(driver.phone,
+                                  maxLines: 2,
                                   style: Theme
                                       .of(context)
                                       .textTheme
@@ -285,13 +348,13 @@ class DriversList extends StatelessWidget {
                         new Container(
                             padding: new EdgeInsets.all(8.0),
                             child: new Column(children: <Widget>[
-                              new Text("3m",
+                              new Text(driver.distance,
                                   overflow: TextOverflow.ellipsis,
                                   style: new TextStyle(
                                       fontStyle: FontStyle.italic,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey)),
-                              new Text("4/5",
+                              new Text(driver.note,
                                   overflow: TextOverflow.ellipsis,
                                   style: new TextStyle(
                                       fontStyle: FontStyle.italic,
@@ -327,3 +390,4 @@ class DriversList extends StatelessWidget {
 }
 
 enum WhyFarther { Note, smarter, selfStarter, tradingCharter }
+enum ActionsMenu { covoiturage }

@@ -112,13 +112,13 @@ class MD5 {
     }
     //x[(((len + 64) >> 9) << 4) + 14] = len;
 
-    var a = 1732584193;
-    var b = -271733879;
-    var c = -1732584194;
-    var d = 271733878;
+    int a = 1732584193;
+    int b = -271733879;
+    int c = -1732584194;
+    int d = 271733878;
 
     var olda, oldb, oldc, oldd;
-    for (var i = 0; i < x.length; i += 16) {
+    for (int i = 0; i < x.length; i += 16) {
       olda = a;
       oldb = b;
       oldc = c;

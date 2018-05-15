@@ -26,7 +26,6 @@ class ChatStatesNotificationPlugin extends PluginClass {
   }
 
   _notificationReceived(element) {
-    print(element.runtimeType);
     xml.XmlElement message;
     if (element is String) {
       message = xml.parse(element).rootElement;

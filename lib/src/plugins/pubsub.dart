@@ -222,21 +222,23 @@ Extend connection object to have plugin name 'pubsub'.
     Returns:
     Iq id used to send subscription.
     */
-  createNode(String node, [Map<String, dynamic> options, Function callback]) {
+  createNode(String node,
+      [String service, Map<String, dynamic> options, Function callback]) {
     String iqid = this.connection.getUniqueId("pubsubcreatenode");
-
+    service = service != null && service.isNotEmpty ? service : this.service;
     PubsubBuilder iq = new PubsubBuilder('iq', {
       'from': Strophe.getBareJidFromJid(this.jid),
-      'to': this.service,
+      'to': service,
       'type': 'set',
       'id': iqid
-    }).c('pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c('create', {'node': node});
+    }).c('pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c(
+        'create', node != null ? {'node': node} : null);
     if (options != null) {
       iq = iq.up().c('configure');
       iq.form(Strophe.NS['PUBSUB_NODE_CONFIG'], options);
     }
-
-    this.connection.addHandler(callback, null, 'iq', null, iqid, null);
+    if (callback != null)
+      this.connection.addHandler(callback, null, 'iq', null, iqid, null);
     this.connection.send(iq.tree());
     return iqid;
   }
@@ -277,10 +279,12 @@ Extend connection object to have plugin name 'pubsub'.
      *   (Function) error - Used to determine if node
      * creation had errors.
      */
-  discoverNodes([Function success, Function error, int timeout]) {
+  discoverNodes(
+      [String service, Function success, Function error, int timeout]) {
     //ask for all nodes
+    service = service != null && service.isNotEmpty ? service : this.service;
     StanzaBuilder iq = Strophe
-        .$iq({'from': this.jid, 'to': this.service, 'type': 'get'}).c(
+        .$iq({'from': this.jid, 'to': service, 'type': 'get'}).c(
             'query', {'xmlns': Strophe.NS['DISCO_ITEMS']});
 
     return this.connection.sendIQ(iq.tree(), success, error, timeout);
@@ -351,20 +355,22 @@ Extend connection object to have plugin name 'pubsub'.
         Returns:
         Iq id used to send subscription.
     */
-  subscribe(String node, Map<String, dynamic> options, Function eventcb,
-      [Function success, Function error, bool barejid = true]) {
+  subscribe(String node,
+      [String service,
+      Map<String, dynamic> options,
+      Function eventcb,
+      Function success,
+      Function error,
+      bool barejid = true]) {
     String iqid = this.connection.getUniqueId("subscribenode");
 
     String jid = this.jid;
     if (barejid) jid = Strophe.getBareJidFromJid(jid);
-
-    PubsubBuilder iq = new PubsubBuilder('iq', {
-      'from': this.jid,
-      'to': this.service,
-      'type': 'set',
-      'id': iqid
-    }).c('pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c(
-        'subscribe', {'node': node, 'jid': jid});
+    service = service != null && service.isNotEmpty ? service : this.service;
+    PubsubBuilder iq = new PubsubBuilder(
+            'iq', {'from': this.jid, 'to': service, 'type': 'set', 'id': iqid})
+        .c('pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c(
+            'subscribe', {'node': node, 'jid': jid});
     if (options != null) {
       PubsubBuilder c = iq.up().c('options');
 
@@ -387,16 +393,15 @@ Extend connection object to have plugin name 'pubsub'.
         (Function) error    - error callback function.
     */
   unsubscribe(String node, String jid,
-      [String subid, Function success, Function error]) {
+      [String service, String subid, Function success, Function error]) {
     String iqid = this.connection.getUniqueId("pubsubunsubscribenode");
-
-    StanzaBuilder iq = Strophe.$iq({
-      'from': this.jid,
-      'to': this.service,
-      'type': 'set',
-      'id': iqid
-    }).c('pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c(
-        'unsubscribe', {'node': node, 'jid': jid});
+    service = service != null && service.isNotEmpty ? service : this.service;
+    StanzaBuilder iq = Strophe
+        .$iq({'from': this.jid, 'to': service, 'type': 'set', 'id': iqid}).c(
+            'pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c('unsubscribe', {
+      'node': node,
+      'jid': jid ?? Strophe.getBareJidFromJid(connection.jid)
+    });
     if (subid != null && subid.isNotEmpty) iq.attrs({'subid': subid});
 
     this.connection.sendIQ(iq.tree(), success, error);

@@ -122,4 +122,4 @@ String distVincenty(num lat1, num lon1, num lat2, num lon2) {
   return s.toStringAsFixed(3); // round to 1mm precision
 }
 
-enum InboxActions { SHOW_PROFIL, DELETE_CHAT, BLOCK }
+enum InboxActions { NOTER, DELETE_CHAT, BLOCK }

@@ -19,13 +19,13 @@ class Services {
   String _domain = 'localhost';
   String _url;
 
-  String lat;
-  String lon;
-  String name;
+  num _lat = 2.3;
+  num _lon = 2.3;
+  String name = "andre";
 
-  String _host = '192.168.0.101';
+  String _host = '192.168.8.101';
 
-  String title;
+  String title = "driver";
 
   Services._() {
     _url = "ws://$_host:5280/xmpp";
@@ -51,6 +51,22 @@ class Services {
     if (id != null && id.indexOf("@$_domain") != -1) {
       _jid = id;
     }
+  }
+
+  num get lat {
+    return _lat;
+  }
+
+  set lat(num newLat) {
+    if (newLat != null) _lat = newLat;
+  }
+
+  num get lon {
+    return _lon;
+  }
+
+  set lon(num newLon) {
+    if (newLon != null) _lon = newLon;
   }
 
   String get pass {
@@ -79,14 +95,10 @@ class Services {
   login(String phone, String pass, callback) {
     String jid = this._formatToJid(phone);
     _connection.connect(jid, pass, (int status, condition, elem) {
-      print('login $status');
+      print('login $status $jid, $pass');
+      callback(status, condition, elem);
       if (status == Strophe.Status['CONNECTED']) {
-        callback(true);
-      }
-      if (status == Strophe.Status['DISCONNECTED'] ||
-          status == Strophe.Status['CONFAIL'] ||
-          status == Strophe.Status['CONNTIMEOUT']) {
-        callback(false);
+        this.handleAfterConnect();
       }
     });
   }
@@ -137,7 +149,9 @@ class Services {
   }
 
   sendPresence() {
+    print("sendPresence 1");
     if (!this._connection.connected) return;
+    print("sendPresence 2");
     if (this.lat == null ||
         this.lon == null ||
         this.name == null ||
@@ -146,10 +160,10 @@ class Services {
         .$pres({'id': this._connection.getUniqueId("sendOnLine")})
         .c('data')
         .c('lat')
-        .t(this.lat)
+        .t(this.lat.toString())
         .up()
         .c('lon')
-        .t(this.lon)
+        .t(this.lon.toString())
         .up()
         .c('name')
         .t(this.name)
@@ -326,8 +340,15 @@ class Services {
     return elNamespace;
   }
 
-  Stream<List<Person>> getPersons() {
-    _personsStream.add(_sortPersons());
+  Stream<List<Person>> getPersons([String search]) {
+    List<Person> sortPersons = _sortPersons();
+    if (search != null && search.isNotEmpty) {
+      sortPersons = sortPersons.where((Person p) {
+        return p.name.toLowerCase().indexOf(search.toLowerCase()) != -1 ||
+            p.phone.toLowerCase().indexOf(search.toLowerCase()) != -1;
+      }).toList();
+    }
+    _personsStream.add(sortPersons);
     return _personsStream.stream;
   }
 
@@ -371,6 +392,7 @@ class Services {
 
   void _addOrUpdatePerson(Person person) {
     if (person == null || person.phone == null) return;
+    person.distance = distVincenty(person.lat, person.long, this.lat, this.lon);
     this._persons[person.phone] = person;
     this._personsStream.add(this._sortPersons());
   }

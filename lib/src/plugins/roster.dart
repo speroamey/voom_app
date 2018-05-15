@@ -394,7 +394,7 @@ class RosterPlugin extends PluginClass {
     List<xml.XmlElement> queries = iq.findAllElements('query').toList();
     if (queries.length != 0) {
       xml.XmlElement query = queries[0];
-      if(query == null) return ;
+      if (query == null) return;
       List<xml.XmlElement> listItem = query.findAllElements('item').toList();
       if (listItem.length > 0) {
         xml.XmlElement item = listItem[0];
@@ -465,7 +465,7 @@ class RosterItem {
   String subscription;
   String ask;
   List<String> groups;
-  Map<dynamic,dynamic> resources;
+  Map<dynamic, dynamic> resources;
   RosterItem.fromMap(Map map) {
     this.name = map['name'] ?? '';
     this.jid = map['jid'] ?? '';

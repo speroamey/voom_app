@@ -151,7 +151,7 @@ class StropheWebSocket extends ServiceType {
 
   _connect() {
     // Ensure that there is no open WebSocket from a previous Connection.
-    //this._closeSocket();
+    this._disconnect();
 
     if (this.socketListen == null || this.socket == null) {
       // Create the new WebSocket
@@ -161,6 +161,8 @@ class StropheWebSocket extends ServiceType {
         this.socketListen = this.socket.listen(this._connectCbWrapper,
             onError: this._onError, onDone: this._onClose);
         this._onOpen();
+      }).catchError((e) {
+        this._conn.connexionError("impossible de joindre le serveur XMPP : $e");
       });
     }
   }
@@ -292,7 +294,7 @@ class StropheWebSocket extends ServiceType {
       String closeString = Strophe.serialize(close.tree());
       this._conn.rawOutput(closeString);
       try {
-        this.socket.add(closeString);
+        if (this.socket != null) this.socket.add(closeString);
       } catch (e) {
         Strophe.info("Couldn't send <close /> tag.");
       }
@@ -433,7 +435,7 @@ class StropheWebSocket extends ServiceType {
           rawStanza = Strophe.serialize(stanza);
           this._conn.xmlOutput(stanza);
           this._conn.rawOutput(rawStanza);
-          this.socket.add(rawStanza);
+          if (this.socket != null) this.socket.add(rawStanza);
         }
       }
       this._conn.data = [];
@@ -517,7 +519,7 @@ class StropheWebSocket extends ServiceType {
 
     String startString = Strophe.serialize(start.tree());
     this._conn.rawOutput(startString);
-    this.socket.add(startString);
+    if (this.socket != null) this.socket.add(startString);
   }
 
   /** PrivateFunction: _reqToData

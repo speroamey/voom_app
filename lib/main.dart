@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:voom_app/login.dart';
+import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
-import 'package:voom_app/src/theme.dart';
+import 'package:voom_app/theme.dart';
 import 'mainList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +20,14 @@ class MyApp extends StatelessWidget {
         theme: new ThemeData(
           primarySwatch: Colors.red,
         ),
+        routes: {
+          '/liste': (BuildContext ctx) {
+            return new MainListe();
+          },
+          '/no-location': (BuildContext ctx) {
+            return new NoLocation();
+          }
+        },
         home: new FutureBuilder(
             future: _getHomePage(),
             builder: (_, AsyncSnapshot<Widget> snapshot) {
@@ -85,15 +94,11 @@ class HomeState extends State<Home> {
                 stops: [0.0, 0.4, 1.0])),
         child: new Center(
             child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            new Image.asset(
-              'images/voiture.jpg',
-              fit: BoxFit.contain,
-            ),
-            new Text("Vooooom", style: textStyle)
-          ],
-        )));
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+              new Image.asset('images/voiture.jpg', fit: BoxFit.contain),
+              new Text("Vooooom", style: textStyle)
+            ])));
   }
 
   @override

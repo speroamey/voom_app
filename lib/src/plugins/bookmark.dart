@@ -26,7 +26,7 @@ class BookMarkPlugin extends PluginClass {
         Strophe
             .$iq({'type': 'set'})
             .c('pubsub', {'xmlns': Strophe.NS['PUBSUB']})
-            .c('create', {'node': 'storage:bookmarks'})
+            .c('create', {'node': Strophe.NS['BOOKMARKS']})
             .up()
             .c('configure')
             .c('x', {'xmlns': 'jabber:x:data', 'type': 'submit'})
@@ -179,7 +179,7 @@ class BookMarkPlugin extends PluginClass {
       for (int i = 0; i < confs.length; i++) {
         Map<String, dynamic> conferenceAttr = {
           'jid': confs[i].getAttribute('jid'),
-          'autojoin': confs[i].getAttribute('autojoin') ?? false
+          'autojoin': confs[i].getAttribute('autojoin')
         };
         if (conferenceAttr['jid'] == roomJid) {
           continue;
@@ -192,6 +192,56 @@ class BookMarkPlugin extends PluginClass {
         List<xml.XmlElement> nickname =
             confs[i].findAllElements('nick').toList();
         if (nickname.length == 1) {
+          stanza.c('nick').t(nickname[0].text).up();
+        }
+        stanza.up();
+      }
+      this.connection.sendIQ(stanza.tree(), success, error);
+    }, (s) {
+      error(s);
+    });
+  }
+
+  /**
+	 * Update the bookmark with the given roomJid in the bookmark storage.
+	 *
+	 * The whole remote bookmark storage is just updated by updating the
+	 * bookmark corresponding to the specified room.
+	 *
+	 * @param {string} roomJid - The JabberID of the chat roomJid you want to remove
+	 * @param {function} [success] - Callback after success
+	 * @param {function} [error] - Callback after error
+	 */
+  update(String roomJid, String alias,
+      [String nick, bool autojoin = true, Function success, Function error]) {
+    StanzaBuilder stanza = Strophe
+        .$iq({'type': 'set'}).c('pubsub', {'xmlns': Strophe.NS['PUBSUB']}).c(
+            'publish', {'node': Strophe.NS['BOOKMARKS']}).c('item', {
+      'id': 'current'
+    }).c('storage', {'xmlns': Strophe.NS['BOOKMARKS']});
+
+    this.get((xml.XmlElement s) {
+      List<xml.XmlElement> confs = s.findAllElements('conference').toList();
+      for (int i = 0; i < confs.length; i++) {
+        Map<String, dynamic> conferenceAttr = {
+          'jid': confs[i].getAttribute('jid'),
+          'autojoin': confs[i].getAttribute('autojoin'),
+          'name': confs[i].getAttribute('name')
+        };
+        if (conferenceAttr['jid'] == roomJid) {
+          conferenceAttr['autojoin'] = autojoin ?? conferenceAttr['autojoin'];
+          String roomName = confs[i].getAttribute('name');
+          if (alias != null && alias.isNotEmpty) roomName = alias;
+          conferenceAttr['name'] = roomName ?? '';
+        }
+        stanza.c('conference', conferenceAttr);
+        List<xml.XmlElement> nickname =
+            confs[i].findAllElements('nick').toList();
+        if (nick != null &&
+            nick.isNotEmpty &&
+            conferenceAttr['jid'] == roomJid) {
+          stanza.c('nick').t(nick).up();
+        } else if (nickname.length == 1) {
           stanza.c('nick').t(nickname[0].text).up();
         }
         stanza.up();

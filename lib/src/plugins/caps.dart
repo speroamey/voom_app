@@ -30,7 +30,7 @@ class CapsPlugin extends PluginClass {
   }
 
   sendPres() {
-    createCapsNode().then((caps) {
+    createCapsNode().then((StanzaBuilder caps) {
       return this.connection.send(Strophe.$pres().cnode(caps.tree()));
     });
   }

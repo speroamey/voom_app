@@ -57,18 +57,18 @@ class MucPlugin extends PluginClass {
       String password,
       Map<String, dynamic> historyAttrs,
       XmlNode extendedPresence]) {
-    StanzaBuilder msg;
+    StanzaBuilder pres;
     String roomNick = this.testAppendNick(room, nick);
-    msg = Strophe.$pres({'from': this.connection.jid, 'to': roomNick}).c(
+    pres = Strophe.$pres({'from': this.connection.jid, 'to': roomNick}).c(
         "x", {'xmlns': Strophe.NS['MUC']});
     if (historyAttrs != null) {
-      msg = msg.c("history", historyAttrs).up();
+      pres = pres.c("history", historyAttrs).up();
     }
     if (password != null && password.isNotEmpty) {
-      msg.cnode(Strophe.xmlElement("password", attrs: [], text: password));
+      pres.cnode(Strophe.xmlElement("password", attrs: [], text: password));
     }
     if (extendedPresence != null) {
-      msg.up().cnode(extendedPresence);
+      pres.up().cnode(extendedPresence);
     }
     if (this._mucHandler == null) {
       this._mucHandler = this.connection.addHandler((XmlElement stanza) {
@@ -121,7 +121,7 @@ class MucPlugin extends PluginClass {
       }
       this.roomNames.add(room);
     }
-    return this.connection.send(msg);
+    return this.connection.send(pres);
   }
 
   /*Function

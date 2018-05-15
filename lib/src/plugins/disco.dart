@@ -7,6 +7,7 @@ class DiscoPlugin extends PluginClass {
   List<Map<String, String>> _identities = [];
   List<String> _features = [];
   List<Map<String, dynamic>> _items = [];
+
   /** Function: init
      * Plugin init
      *
@@ -154,7 +155,8 @@ class DiscoPlugin extends PluginClass {
 
   /** PrivateFunction: _buildIQResult
      */
-  _buildIQResult(XmlElement stanza, Map<String, String> queryAttrs) {
+  StanzaBuilder _buildIQResult(
+      XmlElement stanza, Map<String, String> queryAttrs) {
     String id = stanza.getAttribute('id');
     String from = stanza.getAttribute('from');
     StanzaBuilder iqresult = Strophe.$iq({'type': 'result', id: id});
@@ -176,7 +178,7 @@ class DiscoPlugin extends PluginClass {
     if (node != null && node.isNotEmpty) {
       attrs['node'] = node;
     }
-    var iqresult = this._buildIQResult(stanza, attrs);
+    StanzaBuilder iqresult = this._buildIQResult(stanza, attrs);
     for (int i = 0; i < this._identities.length; i++) {
       attrs = {
         'category': this._identities[i]['category'],
@@ -215,9 +217,9 @@ class DiscoPlugin extends PluginClass {
     } else {
       items = this._items;
     }
-    var iqresult = this._buildIQResult(stanza, queryAttrs);
+    StanzaBuilder iqresult = this._buildIQResult(stanza, queryAttrs);
     for (int i = 0; i < items.length; i++) {
-      var attrs = {'jid': items[i].jid};
+      Map<String, dynamic> attrs = {'jid': items[i].jid};
       if (items[i]['name'] != null) attrs['name'] = items[i].name;
       if (items[i].node) attrs['node'] = items[i].node;
       iqresult.c('item', attrs).up();

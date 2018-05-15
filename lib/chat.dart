@@ -3,7 +3,7 @@ import 'package:voom_app/chat-message.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/searchbar.dart';
 import 'package:voom_app/services.dart';
-import 'package:voom_app/src/theme.dart';
+import 'package:voom_app/theme.dart';
 
 class ChatPage extends StatefulWidget {
   final Person person;
@@ -137,12 +137,8 @@ class _ChatPageState extends State<ChatPage> {
             new PopupMenuButton(
                 padding: new EdgeInsets.all(0.0),
                 onSelected: (InboxActions action) {
-                  if (action == InboxActions.SHOW_PROFIL) {
-                    Navigator.of(context).push(
-                        new MaterialPageRoute(builder: (BuildContext context) {
-                      //return new Profil();
-                    }));
-                  } else if (action == InboxActions.BLOCK) {
+                  if (action == InboxActions.NOTER) {} else if (action ==
+                      InboxActions.BLOCK) {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -175,14 +171,11 @@ class _ChatPageState extends State<ChatPage> {
 
   List<PopupMenuEntry<InboxActions>> _popMenu() {
     List<PopupMenuEntry<InboxActions>> menus = [];
+    menus.add(
+        new PopupMenuItem(value: InboxActions.NOTER, child: new Text('Noter')));
     menus.add(new PopupMenuItem(
-      value: InboxActions.SHOW_PROFIL,
-      child: new Text('afficher le profil'),
-    ));
-    menus.add(new PopupMenuItem(
-      value: InboxActions.DELETE_CHAT,
-      child: new Text('Effacer la discussion'),
-    ));
+        value: InboxActions.DELETE_CHAT,
+        child: new Text('Effacer la discussion')));
     return menus;
   }
 
