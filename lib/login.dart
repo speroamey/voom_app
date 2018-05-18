@@ -80,14 +80,14 @@ class _LoginState extends State<Login> {
   }
 
   _onLogin() {
-    /* if (true == true) {
+    if (true == true) {
       Navigator.of(context).pushAndRemoveUntil(
           new MaterialPageRoute(builder: (BuildContext context) {
         return new MainListe();
       }), ModalRoute.withName('/liste'));
       return;
-    } */
-    Services instance = Services.instance();
+    }
+    Services instance = Services.instance;
     instance.login(phoneCtrl.text, "jesuis123", (int status, condition, elem) {
       if (status == Strophe.Status['CONNECTED']) {
         Navigator.of(context).pushAndRemoveUntil(

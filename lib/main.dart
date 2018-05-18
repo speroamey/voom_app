@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:voom_app/co-voiturage.dart';
 import 'package:voom_app/login.dart';
 import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
           },
           '/no-location': (BuildContext ctx) {
             return new NoLocation();
+          },
+          '/co-voiturage': (BuildContext ctx) {
+            return new CoVoiturage();
           }
         },
         home: new FutureBuilder(
@@ -53,10 +57,7 @@ class MyApp extends StatelessWidget {
 
   Scaffold _circular() {
     return new Scaffold(
-      body: new Center(
-        child: new CircularProgressIndicator(),
-      ),
-    );
+        body: new Center(child: new CircularProgressIndicator()));
   }
 
   Future<Widget> _getHomePage() async {
@@ -64,8 +65,8 @@ class MyApp extends StatelessWidget {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       String phoneNumber = preferences.getString(AppPreferences.phoneNumber);
       String password = preferences.getString(AppPreferences.password);
-      Services.instance().jid = phoneNumber;
-      Services.instance().pass = password;
+      Services.instance.jid = phoneNumber;
+      Services.instance.pass = password;
       return (phoneNumber == null || password == null)
           ? new Home()
           : new MainListe();

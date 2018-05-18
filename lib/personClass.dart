@@ -52,10 +52,12 @@ class AppPreferences {
 }
 
 double toRad(num n) {
+  if (n == null) return 0.0;
   return n * Math.pi / 180;
 }
 
-String distVincenty(num lat1, num lon1, num lat2, num lon2) {
+num distVincenty(num lat1, num lon1, num lat2, num lon2) {
+  if (lat1 == null || lat2 == null || lon1 == null || lon2 == null) return 0.0;
   num a = 6378137,
       b = 6356752.3142,
       f = 1 / 298.257223563, // WGS-84 ellipsoid params
@@ -76,7 +78,7 @@ String distVincenty(num lat1, num lon1, num lat2, num lon2) {
         (cosU1 * sinU2 - sinU1 * cosU2 * cosLambda) *
             (cosU1 * sinU2 - sinU1 * cosU2 * cosLambda));
     if (0 == sinSigma) {
-      return '0'; // co-incident points
+      return 0; // co-incident points
     }
 
     num sinAlpha = cosU1 * cosU2 * sinLambda / sinSigma;
@@ -101,7 +103,7 @@ String distVincenty(num lat1, num lon1, num lat2, num lon2) {
   } while ((lambda - lambdaP).abs() > 1e-12 && --iterLimit > 0);
 
   if (iterLimit == null || iterLimit == 0) {
-    return double.nan.toString(); // formula failed to converge
+    return double.nan; // formula failed to converge
   }
 
   var uSq = cosSqAlpha * (a * a - b * b) / (b * b),
@@ -119,7 +121,7 @@ String distVincenty(num lat1, num lon1, num lat2, num lon2) {
                           (-3 + 4 * sinSigma * sinSigma) *
                           (-3 + 4 * cos2SigmaM * cos2SigmaM))),
       s = b * A * (sigma - deltaSigma);
-  return s.toStringAsFixed(3); // round to 1mm precision
+  return s; // round to 1mm precision
 }
 
 enum InboxActions { NOTER, DELETE_CHAT, BLOCK }

@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:voom_app/chat.dart';
+import 'package:voom_app/co-voiturage.dart';
 import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/searchbar.dart';
-import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 import 'package:voom_app/services.dart';
@@ -28,7 +26,6 @@ class _MainListeState extends State<MainListe> {
     fontSize: 15.0,
     color: Colors.white,
   );
-  List<bool> _data = new List<bool>();
   static const geoKey = "AIzaSyD3t95XyJYnfRbP4mQHNIqJPxj5V9jkJ6w";
   List<Person> _contacts = [];
 
@@ -57,15 +54,27 @@ class _MainListeState extends State<MainListe> {
     try {
       _currentLocation = await location.getLocation;
       print("_currentLocation $_currentLocation");
-      /* Services.instance().lat = _currentLocation['latitude'];
-      Services.instance().lon = _currentLocation['longitude']; */
+      Services.instance.lat = _currentLocation['latitude'];
+      Services.instance.lon = _currentLocation['longitude'];
     } on PlatformException {
       _currentLocation = {};
     }
     location.onLocationChanged.listen((Map<String, double> currentLocation) {
       _currentLocation = currentLocation;
-      /*  Services.instance().lat = _currentLocation['latitude'];
-      Services.instance().lon = _currentLocation['longitude']; */
+      print("on changed _currentLocation $_currentLocation");
+      Services.instance.lat = _currentLocation['latitude'];
+      Services.instance.lon = _currentLocation['longitude'];
+
+      num distance = distVincenty(
+          Services.instance.lastSentLat,
+          Services.instance.lastSentLon,
+          Services.instance.lat,
+          Services.instance.lon);
+      if (distance > 100) {
+        Services.instance.sendPresence();
+      }
+      // 6.356534 2.4047374 6.41070207 2.32084826
+      print("distance $distance");
     });
   }
 
@@ -77,12 +86,11 @@ class _MainListeState extends State<MainListe> {
 
   @override
   Widget build(BuildContext context) {
-    Stream<List<Person>> contacts = Services.instance().getPersons(_search);
     return new Scaffold(
         key: _scalfoldKey,
         appBar: _buildAppBar(),
         body: new StreamBuilder(
-            stream: contacts,
+            stream: Services.instance.persons,
             builder:
                 (BuildContext context, AsyncSnapshot<List<Person>> snapchot) {
               if (snapchot.hasError || snapchot.data == null) {
@@ -123,11 +131,12 @@ class _MainListeState extends State<MainListe> {
 
   _onTap(int i) {
     if (!_contactsOptions) {
-      Navigator
+      /*  Navigator
           .of(context)
           .push(new MaterialPageRoute(builder: (BuildContext cxt) {
-        return new ChatPage(_contacts[i]);
-      }));
+        return ;
+      })); */
+      _showActionSheet();
     } else {
       _pressedToOptions(i);
       return;
@@ -138,9 +147,40 @@ class _MainListeState extends State<MainListe> {
     });
   }
 
+  _showActionSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext ctx) {
+          return new ListView(shrinkWrap: true, children: <Widget>[
+            new ListTile(
+                leading: new Icon(Icons.shopping_cart, color: Colors.orange),
+                title: new Text("Commander"),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showCommandDialog();
+                }),
+            new Padding(
+                padding: const EdgeInsets.only(right: 10.0),
+                child: new Divider(indent: 70.0)),
+            new ListTile(
+                leading:
+                    new Icon(Icons.rate_review, color: Colors.purple.shade300),
+                title: new Text("Noter"),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showNoteDialog();
+                })
+          ]);
+        });
+  }
+
   AppBar _buildAppBar() {
     AppBar appBar;
     if (_contactsOptions) {
+      String str = '';
+      if (_contactOptionsPinned.length > 1) {
+        str = " ${_contactOptionsPinned.length} taximans";
+      }
       appBar = new AppBar(
           leading: new IconButton(
               icon: new Icon(Icons.arrow_back),
@@ -156,12 +196,17 @@ class _MainListeState extends State<MainListe> {
               onSelected: (WhyFarther result) {
                 if (result == WhyFarther.Note) {
                   _showNoteDialog();
+                } else if (result == WhyFarther.Command) {
+                  _showCommandDialog();
                 }
               },
               itemBuilder: (BuildContext context) =>
                   <PopupMenuEntry<WhyFarther>>[
-                    const PopupMenuItem<WhyFarther>(
-                        value: WhyFarther.Note, child: const Text('Noter'))
+                    new PopupMenuItem<WhyFarther>(
+                        value: WhyFarther.Command,
+                        child: new Text('Commander$str')),
+                    new PopupMenuItem<WhyFarther>(
+                        value: WhyFarther.Note, child: new Text('Noter$str'))
                   ],
             )
           ]);
@@ -175,22 +220,23 @@ class _MainListeState extends State<MainListe> {
                   _isSearch = false;
                   _search = '';
                 });
+                Services.instance.searchPerson(_search);
               }),
           title: new SearchBar(_search, _onSearch, "Rechercher ..."),
           elevation: 10.0,
           actions: <Widget>[
             new IconButton(
-              padding: new EdgeInsets.all(0.0),
-              tooltip: "Effacer la recherche",
-              iconSize: 20.0,
-              icon: new Icon(Icons.close,
-                  color: _search.isEmpty ? Colors.transparent : Colors.black),
-              onPressed: () {
-                setState(() {
-                  _search = '';
-                });
-              },
-            )
+                padding: new EdgeInsets.all(0.0),
+                tooltip: "Effacer la recherche",
+                iconSize: 20.0,
+                icon: new Icon(Icons.close,
+                    color: _search.isEmpty ? Colors.transparent : Colors.black),
+                onPressed: () {
+                  setState(() {
+                    _search = '';
+                  });
+                  Services.instance.searchPerson(_search);
+                })
           ]);
     } else {
       appBar = new AppBar(
@@ -205,18 +251,20 @@ class _MainListeState extends State<MainListe> {
                   });
                 }),
             new PopupMenuButton<ActionsMenu>(
-              onSelected: (ActionsMenu result) {
-                /*  setState(() {
-                                    _selection = result;
-                                  }); */
-              },
-              itemBuilder: (BuildContext context) =>
-                  <PopupMenuEntry<ActionsMenu>>[
-                    const PopupMenuItem<ActionsMenu>(
-                        value: ActionsMenu.covoiturage,
-                        child: const Text('Co-voiturages'))
-                  ],
-            )
+                onSelected: (ActionsMenu result) {
+                  if (result == ActionsMenu.covoiturage) {
+                    Navigator.of(context).push(
+                        new MaterialPageRoute(builder: (BuildContext context) {
+                      return new CoVoiturage();
+                    }));
+                  }
+                },
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<ActionsMenu>>[
+                      const PopupMenuItem<ActionsMenu>(
+                          value: ActionsMenu.covoiturage,
+                          child: const Text('Co-voiturages'))
+                    ])
           ]);
     }
     return appBar;
@@ -226,18 +274,64 @@ class _MainListeState extends State<MainListe> {
     setState(() {
       _search = search;
     });
+    Services.instance.searchPerson(_search);
+  }
+
+  void _showCommandDialog() {
+    String str = '';
+    if (_contactOptionsPinned.length <= 1) {
+      str = 'Commander ';
+    } else {
+      str = "Commander les ${_contactOptionsPinned.length} taximans";
+    }
+    final destination = new TextFormField(
+        autofocus: false,
+        onFieldSubmitted: (String value) {
+          //_onLogin();
+        },
+        decoration: InputDecoration(
+            labelText: "Voulez-vous aller à",
+            hintText: 'Saisissez votre destination',
+            contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0)));
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext ctx) {
+          return new SimpleDialog(
+              titlePadding: new EdgeInsets.all(0.0),
+              contentPadding: new EdgeInsets.only(
+                  top: 12.0, bottom: 16.0, left: 10.0, right: 10.0),
+              title: new Container(
+                  padding: new EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 18.0),
+                  color: secondaryColor,
+                  child: new Text("$str",
+                      style: new TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.w800))),
+              children: <Widget>[
+                new Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: destination),
+                new ButtonTheme.bar(
+                    child: new ButtonBar(children: <Widget>[
+                  new FlatButton(child: new Text("Valider"), onPressed: () {})
+                ]))
+              ]);
+        });
   }
 
   void _showNoteDialog() {
     String str = '';
-    if (_contactOptionsPinned.length == 1) {
+    if (_contactOptionsPinned.length <= 1) {
       str = 'Noter ';
     } else {
-      str = "Noter les ${_contactOptionsPinned.length} persons";
+      str = "Noter les ${_contactOptionsPinned.length} taximans";
     }
     final phoneNumber = new TextFormField(
         keyboardType: TextInputType.number,
-        autofocus: true,
+        autofocus: false,
         onFieldSubmitted: (String value) {
           //_onLogin();
         },
@@ -258,7 +352,9 @@ class _MainListeState extends State<MainListe> {
                   color: secondaryColor,
                   child: new Text("$str",
                       style: new TextStyle(
-                          fontSize: 15.0, fontWeight: FontWeight.w600))),
+                          color: Colors.white,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.w800))),
               children: <Widget>[
                 new Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -282,19 +378,6 @@ class DriversList extends StatelessWidget {
 
   DriversList(
       this.driver, this.isSelected, this.index, this.onTap, this.onLongPress);
-
-  Future<String> getData() async {
-    http.Response response = await http.get(
-        Uri.encodeFull(
-            "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=Washington,DC&destinations=New+York+City,NY"),
-        headers: {
-          "key": "AIzaSyCaMHp0T6sTfyZRznY7AGcJXhuZtAZ2VRg",
-          "Accept": "application/json"
-        });
-    List data = new List();
-    data.add(json.decode(response.body));
-    print(data);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -389,5 +472,5 @@ class DriversList extends StatelessWidget {
   }
 }
 
-enum WhyFarther { Note, smarter, selfStarter, tradingCharter }
+enum WhyFarther { Note, Command }
 enum ActionsMenu { covoiturage }
