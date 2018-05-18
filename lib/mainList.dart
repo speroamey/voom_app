@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:voom_app/co-voiturage.dart';
@@ -100,6 +98,7 @@ class _MainListeState extends State<MainListe> {
               return new Container(
                   decoration: new BoxDecoration(color: Colors.grey.shade200),
                   child: new ListView.builder(
+                      padding: new EdgeInsets.all(0.0),
                       itemBuilder: (BuildContext context, int index) {
                         bool isSelected =
                             this._contactOptionsPinned.contains(index);
@@ -107,6 +106,19 @@ class _MainListeState extends State<MainListe> {
                             index, _onTap, _onLongPress);
                       },
                       itemCount: _contacts.length));
+            }),
+        floatingActionButton: new FloatingActionButton(
+            child: new Stack(fit: StackFit.expand, children: <Widget>[
+              new Icon(Icons.shopping_cart),
+              new Positioned(
+                  top: 10.0,
+                  right: 10.0,
+                  child: new Text('30',
+                      style: new TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.brown)))
+            ]),
+            onPressed: () {
+              _showCommandsActionSheet();
             }));
   }
 
@@ -147,13 +159,34 @@ class _MainListeState extends State<MainListe> {
     });
   }
 
+  _showCommandsActionSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext ctx) {
+          return new ListView.builder(
+              shrinkWrap: true,
+              itemCount: 30,
+              itemBuilder: (BuildContext cxt, int index) {
+                return new ListTile(
+                    leading: new Text("${index+1}",
+                        style: new TextStyle(
+                            fontSize: 15.0,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey)),
+                    title: new Text("Client Name"),
+                    onTap: () {});
+              });
+        });
+  }
+
   _showActionSheet() {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext ctx) {
           return new ListView(shrinkWrap: true, children: <Widget>[
             new ListTile(
-                leading: new Icon(Icons.shopping_cart, color: Colors.orange),
+                leading:
+                    new Icon(Icons.add_shopping_cart, color: Colors.orange),
                 title: new Text("Commander"),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -290,6 +323,7 @@ class _MainListeState extends State<MainListe> {
           //_onLogin();
         },
         decoration: InputDecoration(
+            icon: new Icon(Icons.location_city),
             labelText: "Voulez-vous aller à",
             hintText: 'Saisissez votre destination',
             contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0)));
@@ -336,6 +370,7 @@ class _MainListeState extends State<MainListe> {
           //_onLogin();
         },
         decoration: InputDecoration(
+            icon: new Icon(Icons.text_fields),
             labelText: "votre note",
             contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0)));
     showDialog(
@@ -382,11 +417,12 @@ class DriversList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Container(
-        margin: new EdgeInsets.all(isSelected ? 0.0 : 2.0),
+        margin: new EdgeInsets.symmetric(vertical: isSelected ? 0.0 : 2.0),
         padding: new EdgeInsets.symmetric(
             vertical: isSelected ? 0.0 : 2.0, horizontal: 1.0),
         color: Theme.of(context).cardColor,
         child: new Material(
+            elevation: 2.0,
             child: new InkWell(
                 splashColor: splashColor,
                 onTap: () {
