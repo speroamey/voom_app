@@ -20,13 +20,15 @@ class Services {
   String _domain = 'localhost';
   String _url;
 
-  num _lat = 2.3;
-  num _lon = 2.3;
-  String name = "andre";
+  num _lat;
+  num _lon;
+  num lastSentLat;
+  num lastSentLon;
 
   String _host = hostAddress;
-
+  String name = "andre";
   String title = "driver";
+  Function connexionCallback;
 
   Services._() {
     _url = "ws://$_host:5280/xmpp";
@@ -37,8 +39,16 @@ class Services {
     _connection.xmlOutput = (stanza) {
       print("output $stanza");
     };
+    _connection.connexionError = (String error) {
+      print(error);
+      if (this.connexionCallback != null) {
+        this.connexionCallback(-1, error, null);
+      }
+    };
+    Person p = new Person("Nom du driver", "34 56 81 20", 6.345, 2.502);
+    this._addOrUpdatePerson(p);
   }
-  static Services instance() {
+  static get instance {
     if (_instance == null) _instance = Services._();
     return _instance;
   }
@@ -95,6 +105,7 @@ class Services {
 
   login(String phone, String pass, callback) {
     String jid = this._formatToJid(phone);
+    this.connexionCallback = callback;
     _connection.connect(jid, pass, (int status, condition, elem) {
       print('login $status $jid, $pass');
       callback(status, condition, elem);
@@ -157,6 +168,8 @@ class Services {
         this.lon == null ||
         this.name == null ||
         this.title == null) return;
+    this.lastSentLon = this.lat;
+    this.lastSentLon = this.lon;
     _connection.sendPresence(Strophe
         .$pres({'id': this._connection.getUniqueId("sendOnLine")})
         .c('data')
@@ -192,6 +205,12 @@ class Services {
         List<XmlElement> title = presence.findAllElements('title').toList();
         if (title.length == 0 || lat.length == 0 || lon.length == 0)
           return true;
+        num distance = distVincenty(this._lat, this._lon,
+            double.parse(lat[0].text), double.parse(lon[0].text));
+        if (distance > 2000) {
+          // if presence greater than 2Km
+          return true;
+        }
         Person p = new Person(name.length > 0 ? name[0].text : '', phone,
             double.parse(lat[0].text), double.parse(lon[0].text));
         this._addOrUpdatePerson(p);
@@ -206,9 +225,7 @@ class Services {
       String from = msg.getAttribute('from');
       from = Strophe.getBareJidFromJid(from);
       List<XmlElement> composing = msg.findAllElements('composing').toList();
-      if (composing.length > 0) {
-        bool value = true;
-      }
+      if (composing.length > 0) {}
       return true;
     }, Strophe.NS['CHATSTATES'], 'message', ['chat', 'groupchat']);
   }
@@ -341,7 +358,7 @@ class Services {
     return elNamespace;
   }
 
-  Stream<List<Person>> getPersons([String search]) {
+  void searchPerson([String search]) {
     List<Person> sortPersons = _sortPersons();
     if (search != null && search.isNotEmpty) {
       sortPersons = sortPersons.where((Person p) {
@@ -350,6 +367,9 @@ class Services {
       }).toList();
     }
     _personsStream.add(sortPersons);
+  }
+
+  Stream<List<Person>> get persons {
     return _personsStream.stream;
   }
 
@@ -393,7 +413,16 @@ class Services {
 
   void _addOrUpdatePerson(Person person) {
     if (person == null || person.phone == null) return;
-    person.distance = distVincenty(person.lat, person.long, this.lat, this.lon);
+    num distance = distVincenty(person.lat, person.long, this.lat, this.lon);
+    if (distance == null || distance.isNaN) distance = 0.0;
+    String str;
+    if (distance > 1000) {
+      distance = distance * 0.001;
+      str = "${distance.toStringAsFixed(3)} Km";
+    } else {
+      str = "$distance m";
+    }
+    person.distance = str;
     this._persons[person.phone] = person;
     this._personsStream.add(this._sortPersons());
   }
