@@ -84,7 +84,7 @@ class _LoginState extends State<Login> {
       Navigator.of(context).pushAndRemoveUntil(
           new MaterialPageRoute(builder: (BuildContext context) {
         return new MainListe();
-      }), ModalRoute.withName('/liste'));
+      }), ModalRoute.withName('/types'));
       return;
     }
     Services instance = Services.instance;
@@ -108,19 +108,17 @@ class _LoginState extends State<Login> {
         builder: (BuildContext ctx) {
           return new SimpleDialog(children: <Widget>[
             new Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: const CircularProgressIndicator()),
-                new Expanded(
-                    child: new Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: new Text("Connexion en cours",
-                      overflow: TextOverflow.ellipsis),
-                ))
-              ],
-            )
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: const CircularProgressIndicator()),
+                  new Expanded(
+                      child: new Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: new Text("Connexion en cours",
+                              overflow: TextOverflow.ellipsis)))
+                ])
           ]);
         });
   }

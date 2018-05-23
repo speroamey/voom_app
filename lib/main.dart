@@ -7,6 +7,7 @@ import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
 import 'package:voom_app/theme.dart';
+import 'package:voom_app/type.dart';
 import 'mainList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
           },
           '/co-voiturage': (BuildContext ctx) {
             return new CoVoiturage();
+          },
+          '/types': (BuildContext ctx) {
+            return new TypePage();
           }
         },
         home: new FutureBuilder(

@@ -47,7 +47,7 @@ class Services {
     Person p = new Person("Nom du driver", "34 56 81 20", 6.345, 2.502);
     this._addOrUpdatePerson(p);
   }
-  static get instance {
+  static Services get instance {
     if (_instance == null) _instance = Services._();
     return _instance;
   }
@@ -105,7 +105,7 @@ class Services {
   login(String phone, String pass, callback) {
     String jid = this._formatToJid(phone);
     this.connexionCallback = callback;
-    _connection.connect(jid, pass, (int status, condition, elem) {
+    _connection.connect(jid, pass ?? _pass, (int status, condition, elem) {
       print('login $status $jid, $pass');
       callback(status, condition, elem);
       if (status == Strophe.Status['CONNECTED']) {
@@ -159,10 +159,12 @@ class Services {
     this._connection.chatstates.sendComposing(jid, type);
   }
 
+  bool get isConnected {
+    return this._connection != null && _connection.connected;
+  }
+
   sendPresence() {
-    print("sendPresence 1");
     if (!this._connection.connected) return;
-    print("sendPresence 2");
     if (this.lat == null ||
         this.lon == null ||
         this.name == null ||

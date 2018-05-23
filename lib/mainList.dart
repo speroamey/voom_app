@@ -7,6 +7,7 @@ import 'package:voom_app/searchbar.dart';
 import 'package:location/location.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 import 'package:voom_app/services.dart';
+import 'package:voom_app/src/core.dart';
 import 'package:voom_app/theme.dart';
 
 class MainListe extends StatefulWidget {
@@ -62,7 +63,13 @@ class _MainListeState extends State<MainListe> {
       print("on changed _currentLocation $_currentLocation");
       Services.instance.lat = _currentLocation['latitude'];
       Services.instance.lon = _currentLocation['longitude'];
-
+      if (!Services.instance.isConnected) {
+        Services.instance.login(Services.instance.jid, Services.instance.pass,
+            (int status, condition, elem) {
+          if (status == Strophe.Status['CONNECTED']) {} else if (status ==
+              Strophe.Status['CONNFAIL']) {}
+        });
+      }
       num distance = distVincenty(
           Services.instance.lastSentLat,
           Services.instance.lastSentLon,
