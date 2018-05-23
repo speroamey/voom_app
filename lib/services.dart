@@ -6,6 +6,7 @@ import 'package:voom_app/src/enums.dart';
 import 'package:xml/xml/nodes/document.dart';
 import 'package:xml/xml/nodes/element.dart';
 import 'package:xml/xml/nodes/node.dart';
+import 'server_addr.dart';
 
 class Services {
   Map<String, Person> _persons = {};
@@ -24,8 +25,8 @@ class Services {
   num lastSentLat;
   num lastSentLon;
 
+  String _host = hostAddress;
   String name = "andre";
-  String _host = '192.168.8.101';
   String title = "driver";
   Function connexionCallback;
 
