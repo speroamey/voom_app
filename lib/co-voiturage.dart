@@ -42,7 +42,7 @@ class _CoVoiturageState extends State<CoVoiturage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              new Text("Co"),
+              new Text("Co voiturage"),
               new Text('32 publications', style: new TextStyle(fontSize: 10.0))
             ]),
         actions: <Widget>[
