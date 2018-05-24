@@ -538,9 +538,9 @@ class _MainListeState extends State<MainListe>
       str = "Noter les ${_contactOptionsPinned.length} taximans";
     }
     if (initialValue.isEmpty) initialValue = '0';
-    String phoneNumberText = '';
+    /*  String phoneNumberText = '';
     TextEditingController noteCtrl =
-        new TextEditingController(text: initialValue);
+        new TextEditingController(text: initialValue); 
     final phoneNumber = new TextField(
         keyboardType: TextInputType.number,
         autofocus: false,
@@ -551,7 +551,7 @@ class _MainListeState extends State<MainListe>
         decoration: InputDecoration(
             icon: new Icon(Icons.text_fields),
             labelText: "votre note",
-            contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0)));
+            contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0))); */
     showDialog(
         context: context,
         barrierDismissible: true,
