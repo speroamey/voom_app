@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:voom_app/clients.dart';
 import 'package:voom_app/co-voiturage.dart';
+import 'package:voom_app/details.dart';
 import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/searchbar.dart';
@@ -223,6 +224,16 @@ class _MainListeState extends State<MainListe>
             _showNoteDialog(i);
           }));
     }
+    listChildren.add(new ListTile(
+        leading: new Icon(Icons.rate_review, color: Colors.purple.shade300),
+        title: new Text("Details du driver"),
+        onTap: () {
+          Navigator.of(context).push(new MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (BuildContext context) {
+                return new DetailsPage(contact);
+              }));
+        }));
     showModalBottomSheet(
         context: context,
         builder: (BuildContext ctx) {

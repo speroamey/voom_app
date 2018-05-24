@@ -73,7 +73,7 @@ class _CoVoiturageState extends State<CoVoiturage> {
                                           new PopupMenuItem(
                                               value: CoActions.Interest,
                                               child: new Text(
-                                                  'Se mettre en contact'))
+                                                  'Reserver une place'))
                                         ]).then((CoActions result) {
                                       if (result == CoActions.Interest) {
                                         //Services.instance.sendMessage();
