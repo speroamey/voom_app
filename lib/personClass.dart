@@ -21,6 +21,7 @@ class Person {
 }
 
 enum SentStatus { NO_DELIVERED, SENT, RECEIVED, SEEN, NONE }
+enum UserTitle { User, Driver }
 
 class AppMessage {
   String content = '';
@@ -44,6 +45,14 @@ class AppMessage {
     blockquote = map['blockquote'];
     status = map['status'] ?? SentStatus.NO_DELIVERED;
   }
+}
+
+class UserCommand {
+  String destination;
+  String depart;
+  int time;
+  Person client;
+  UserCommand(this.depart, this.destination, this.time, this.client);
 }
 
 class AppPreferences {

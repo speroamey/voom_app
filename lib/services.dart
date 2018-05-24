@@ -27,7 +27,9 @@ class Services {
 
   String _host = hostAddress;
   String name = "andre";
-  String title = "driver";
+  UserTitle title = UserTitle.User;
+  List<UserCommand> commands = [];
+  List<UserCommand> myCommands = [];
   Function connexionCallback;
 
   Services._() {
@@ -45,8 +47,10 @@ class Services {
         this.connexionCallback(-1, error, null);
       }
     };
-    Person p = new Person("Nom du driver", "34 56 81 20", 6.345, 2.502);
-    this._addOrUpdatePerson(p);
+    for (int i = 0; i < 5; i++) {
+      Person p = new Person("Nom du driver", "34 56 81 2$i", 6.345, 2.502);
+      this._addOrUpdatePerson(p);
+    }
   }
   static Services get instance {
     if (_instance == null) _instance = Services._();
@@ -90,6 +94,14 @@ class Services {
 
   bool get connected {
     return this._connection.connected;
+  }
+
+  bool hasCommandOf(String phone) {
+    for (int i = 0, len = myCommands.length; i < len; i++) {
+      UserCommand command = myCommands[i];
+      if (command.client.phone == phone) return true;
+    }
+    return false;
   }
 
   String _formatToJid(String phone, [String domain]) {
@@ -165,13 +177,14 @@ class Services {
   }
 
   sendPresence() {
-    if (!this._connection.connected) return;
+    if (this._connection == null || !this._connection.connected) return;
     if (this.lat == null ||
         this.lon == null ||
         this.name == null ||
         this.title == null) return;
     this.lastSentLon = this.lat;
     this.lastSentLon = this.lon;
+    String _title = this.title == UserTitle.User ? 'User' : 'Driver';
     _connection.sendPresence(Strophe
         .$pres({'id': this._connection.getUniqueId("sendOnLine")})
         .c('data')
@@ -185,7 +198,7 @@ class Services {
         .t(this.name)
         .up()
         .c('title')
-        .t(this.title)
+        .t(_title)
         .up()
         .tree());
   }
@@ -295,7 +308,9 @@ class Services {
     msg.c('request', {'xmlns': Strophe.NS['RECEIPTS'], 'id': id});
     this._connection.send(msg.tree());
   }
-
+setVCard(String phone){
+  
+}
   sendMessage(String jid, String message,
       {String userName = '', String blockquoteId = '', String replaceId}) {
     jid = this._formatToJid(jid);

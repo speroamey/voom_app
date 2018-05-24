@@ -26,6 +26,9 @@ class MyApp extends StatelessWidget {
           '/liste': (BuildContext ctx) {
             return new MainListe();
           },
+          '/login': (BuildContext ctx) {
+            return new Login();
+          },
           '/no-location': (BuildContext ctx) {
             return new NoLocation();
           },
@@ -93,16 +96,22 @@ class HomeState extends State<Home> {
     return new Container(
         decoration: new BoxDecoration(
             gradient: new LinearGradient(
-                colors: [primaryColor, secondaryColor, thirdColor],
+                colors: [
+                  primaryColor,
+                  secondaryColor,
+                  secondaryColor.withOpacity(0.5)
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                stops: [0.0, 0.4, 1.0])),
+                stops: [0.0, 0.5, 1.0])),
         child: new Center(
             child: new Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
               new Image.asset('images/voiture.jpg', fit: BoxFit.contain),
-              new Text("Vooooom", style: textStyle)
+              new Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: new Text("Voooom", style: textStyle))
             ])));
   }
 
@@ -114,9 +123,7 @@ class HomeState extends State<Home> {
       Navigator.of(context).pushAndRemoveUntil(
           new MaterialPageRoute(builder: (BuildContext context) {
         return new Login();
-      }), (route) {
-        return true;
-      });
+      }), ModalRoute.withName('/login'));
     });
   }
 }

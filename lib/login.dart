@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voom_app/mainList.dart';
 import 'package:voom_app/services.dart';
 import 'package:voom_app/src/core.dart';
+import 'package:voom_app/type.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -43,13 +45,13 @@ class _LoginState extends State<Login> {
       },
       decoration: InputDecoration(
         hintText: "Numéro de téléphone",
-        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        contentPadding: EdgeInsets.fromLTRB(20.0, 11.0, 20.0, 11.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
     );
 
     final loginButton = new Padding(
-        padding: EdgeInsets.symmetric(vertical: 10.0),
+        padding: EdgeInsets.symmetric(vertical: 12.0),
         child: new Material(
             borderRadius: BorderRadius.circular(30.0),
             shadowColor: phoneCtrl.text.trim().isEmpty
@@ -79,21 +81,26 @@ class _LoginState extends State<Login> {
             ])));
   }
 
-  _onLogin() {
+  _onLogin() async {
+    if (phoneCtrl.text.isEmpty) return;
+    Services.instance.jid = phoneCtrl.text + '@localhost';
     if (true == true) {
       Navigator.of(context).pushAndRemoveUntil(
           new MaterialPageRoute(builder: (BuildContext context) {
-        return new MainListe();
+        return new TypePage();
       }), ModalRoute.withName('/types'));
       return;
     }
+
     Services instance = Services.instance;
+    SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
     instance.login(phoneCtrl.text, "jesuis123", (int status, condition, elem) {
       if (status == Strophe.Status['CONNECTED']) {
+        sharedPrefs.setString('login', phoneCtrl.text);
         Navigator.of(context).pushAndRemoveUntil(
             new MaterialPageRoute(builder: (BuildContext context) {
-          return new MainListe();
-        }), ModalRoute.withName('/liste'));
+          return new TypePage();
+        }), ModalRoute.withName('/types'));
       } else if (status == Strophe.Status['CONNFAIL']) {
         /* Navigator.of(context, rootNavigator: true).pop();
         Scaffold.of(context).showSnackBar(new SnackBar(
