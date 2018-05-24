@@ -192,42 +192,6 @@ class _MainListeState extends State<MainListe>
     });
   }
 
-  _showCommandsActionSheet() {
-    showModalBottomSheet(
-        context: context,
-        builder: (BuildContext ctx) {
-          return new ListView.builder(
-              shrinkWrap: true,
-              itemCount: 5,
-              itemBuilder: (BuildContext cxt, int index) {
-                if (index == 0) {
-                  return new ListTile(
-                      title: new Text("Les commandes",
-                          style: new TextStyle(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey)));
-                }
-                return new ListTile(
-                    leading: new Text("$index",
-                        style: new TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey)),
-                    title: new Text("Client Name",
-                        overflow: TextOverflow.ellipsis),
-                    subtitle: new Text("Vedoko-Calavi",
-                        overflow: TextOverflow.ellipsis),
-                    trailing: new Text("à 13h1$index",
-                        style: new TextStyle(
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w300,
-                            fontSize: 12.0)),
-                    onTap: () {});
-              });
-        });
-  }
-
   _showActionSheet(int i) {
     Person contact = _contacts[i];
     bool canNote = false, hasCommand = false;
@@ -387,13 +351,52 @@ class _MainListeState extends State<MainListe>
     return appBar;
   }
 
+  _showCommandsActionSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext ctx) {
+          return new ListView.builder(
+              shrinkWrap: true,
+              itemCount: Services.instance.commands.length + 1,
+              itemBuilder: (BuildContext cxt, int index) {
+                if (index == 0) {
+                  return new ListTile(
+                      title: new Text("Les commandes",
+                          style: new TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey)));
+                }
+                UserCommand command = Services.instance.commands[index - 1];
+                String time = Services.instance.getTime(command.time);
+                return new ListTile(
+                    leading: new Text("$index",
+                        style: new TextStyle(
+                            fontSize: 15.0,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey)),
+                    title: new Text(command.client.name ?? '',
+                        overflow: TextOverflow.ellipsis),
+                    subtitle: new Text(
+                        "${command.depart}-${command.destination}",
+                        overflow: TextOverflow.ellipsis),
+                    trailing: new Text("à $time",
+                        style: new TextStyle(
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w300,
+                            fontSize: 12.0)),
+                    onTap: () {});
+              });
+        });
+  }
+
   _showMyCommandsActionSheet() {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext ctx) {
           return new ListView.builder(
               shrinkWrap: true,
-              itemCount: 5,
+              itemCount: Services.instance.myCommands.length + 1,
               itemBuilder: (BuildContext cxt, int index) {
                 if (index == 0) {
                   return new ListTile(
@@ -403,30 +406,34 @@ class _MainListeState extends State<MainListe>
                               fontWeight: FontWeight.w600,
                               color: Colors.grey)));
                 }
+                UserCommand myCommand = Services.instance.myCommands[index - 1];
+                String time = Services.instance.getTime(myCommand.time);
                 return new ListTile(
-                    title: new Text("Driver Name",
+                    title: new Text(myCommand.client.name ?? '',
                         overflow: TextOverflow.ellipsis),
                     subtitle: new Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          new Text("Vedoko-Calavi",
+                          new Text(
+                              "${myCommand.depart}-${myCommand.destination}",
                               overflow: TextOverflow.ellipsis),
-                          new Text("à 13h1$index",
+                          new Text("à $time",
                               style: new TextStyle(
                                   color: Colors.black54,
                                   fontWeight: FontWeight.w300,
                                   fontSize: 12.0))
                         ]),
                     trailing: new Container(
-                      decoration: new BoxDecoration(
-                          border: new Border.all(),
-                          borderRadius: new BorderRadius.circular(3.0)),
-                      child: new FlatButton(
-                          padding: new EdgeInsets.all(0.0),
-                          child: new Text("Noter"),
-                          onPressed: () {}),
-                    ),
+                        decoration: new BoxDecoration(
+                            border: new Border.all(),
+                            borderRadius: new BorderRadius.circular(3.0)),
+                        child: new FlatButton(
+                            padding: new EdgeInsets.all(0.0),
+                            child: new Text("Noter"),
+                            onPressed: () {
+                              _showNoteDialog(null, myCommand.client);
+                            })),
                     onTap: () {});
               });
         });
@@ -511,14 +518,19 @@ class _MainListeState extends State<MainListe>
         });
   }
 
-  void _showNoteDialog([int i]) {
-    if (_contactOptionsPinned.length == 0 && i == null) return;
+  void _showNoteDialog([int i, Person driver]) {
+    if (_contactOptionsPinned.length == 0 && i == null && driver == null)
+      return;
     String str = '';
-    if (_contactOptionsPinned.length == 1 || i != null) {
+    if (_contactOptionsPinned.length == 1 || i != null || driver != null) {
       str = 'Noter ';
-      int index =
-          _contactOptionsPinned.length == 1 ? _contactOptionsPinned[0] : i;
-      str += _contacts[index].phone ?? '';
+      if (driver == null) {
+        int index =
+            _contactOptionsPinned.length == 1 ? _contactOptionsPinned[0] : i;
+        str += _contacts[index].phone ?? '';
+      } else {
+        str += driver.phone ?? '';
+      }
     } else {
       str = "Noter les ${_contactOptionsPinned.length} taximans";
     }
@@ -560,13 +572,18 @@ class _MainListeState extends State<MainListe>
                   new FlatButton(
                       child: new Text("Valider"),
                       onPressed: () {
-                        List<int> tabs =
-                            i != null ? [i] : _contactOptionsPinned;
-                        tabs.forEach((int value) {
-                          Person contact = _contacts[value];
-                          Services.instance.setVCard(contact.phone);
-                          contact.note = phoneNumberText;
-                        });
+                        List<int> tabs = [];
+                        if (driver == null) {
+                          tabs = i != null ? [i] : _contactOptionsPinned;
+                          tabs.forEach((int value) {
+                            Person contact = _contacts[value];
+                            Services.instance.setVCard(contact.phone);
+                            contact.note = phoneNumberText;
+                          });
+                        } else {
+                          Services.instance.setVCard(driver.phone);
+                          driver.note = phoneNumberText;
+                        }
                         setState(() {
                           _contactOptionsPinned = [];
                           _contactsOptions = false;

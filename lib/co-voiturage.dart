@@ -43,9 +43,8 @@ class _CoVoiturageState extends State<CoVoiturage> {
                                     fontSize: 15.0)),
                             new Row(children: <Widget>[
                               new Padding(
-                                padding: const EdgeInsets.only(right: 1.0),
-                                child: new Icon(Icons.av_timer, size: 10.0),
-                              ),
+                                  padding: const EdgeInsets.only(right: 1.0),
+                                  child: new Icon(Icons.av_timer, size: 10.0)),
                               new Text("dans 35mn",
                                   style: new TextStyle(
                                       color: Colors.black54, fontSize: 11.0))
@@ -58,7 +57,7 @@ class _CoVoiturageState extends State<CoVoiturage> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: <Widget>[
-                                   new GestureDetector(
+                              new GestureDetector(
                                   onTapDown: (TapDownDetails details) {
                                     _details = details;
                                   },
@@ -75,13 +74,16 @@ class _CoVoiturageState extends State<CoVoiturage> {
                                               value: CoActions.Interest,
                                               child: new Text(
                                                   'Se mettre en contact'))
-                                        ]);
+                                        ]).then((CoActions result) {
+                                      if (result == CoActions.Interest) {
+                                        //Services.instance.sendMessage();
+                                      }
+                                    });
                                   },
                                   child: new Padding(
                                       padding: const EdgeInsets.all(3.0),
                                       child: new Icon(Icons.more_vert,
-                                          color: Colors.black))) 
-                                  ,
+                                          color: Colors.black))),
                               new Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: <Widget>[

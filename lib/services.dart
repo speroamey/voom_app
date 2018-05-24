@@ -48,8 +48,10 @@ class Services {
       }
     };
     for (int i = 0; i < 5; i++) {
-      Person p = new Person("Nom du driver", "34 56 81 2$i", 6.345, 2.502);
+      Person p = new Person("Nom du driver$i", "34 56 81 2$i", 6.345, 2.502);
       this._addOrUpdatePerson(p);
+      this.myCommands.add(new UserCommand('depart$i', 'destination$i',
+          new DateTime.now().millisecondsSinceEpoch, p));
     }
   }
   static Services get instance {
@@ -308,9 +310,8 @@ class Services {
     msg.c('request', {'xmlns': Strophe.NS['RECEIPTS'], 'id': id});
     this._connection.send(msg.tree());
   }
-setVCard(String phone){
-  
-}
+
+  setVCard(String phone) {}
   sendMessage(String jid, String message,
       {String userName = '', String blockquoteId = '', String replaceId}) {
     jid = this._formatToJid(jid);
@@ -409,6 +410,28 @@ setVCard(String phone){
     });
     //this.personStreamed();
     return list;
+  }
+
+  String getTime(int date) {
+    if (date == null) return '';
+    DateTime dateTime = new DateTime.fromMillisecondsSinceEpoch(date);
+    String time =
+        '${dateTime.hour.toString().length == 1?"0"+dateTime.hour.toString():dateTime.hour}';
+    time +=
+        ':${dateTime.minute.toString().length == 1?"0"+dateTime.minute.toString():dateTime.minute}';
+    Duration difference = new DateTime.now().difference(dateTime);
+    if (difference.inDays == 1) {
+      time = 'Hier';
+    }
+    if (difference.inDays > 1) {
+      time =
+          '${dateTime.day.toString().length == 1?"0"+dateTime.day.toString():dateTime.day}';
+      time +=
+          '/${dateTime.month.toString().length == 1?"0"+dateTime.month.toString():dateTime.month}';
+      time +=
+          '/${dateTime.year.toString().length == 1?"0"+dateTime.year.toString():dateTime.year}';
+    }
+    return time;
   }
 
   addMessages(AppMessage msg) {
