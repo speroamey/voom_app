@@ -432,6 +432,7 @@ class _MainListeState extends State<MainListe>
                             padding: new EdgeInsets.all(0.0),
                             child: new Text("Noter"),
                             onPressed: () {
+                              Navigator.of(context).pop();
                               _showNoteDialog(null, myCommand.client);
                             })),
                     onTap: () {});
@@ -521,23 +522,29 @@ class _MainListeState extends State<MainListe>
   void _showNoteDialog([int i, Person driver]) {
     if (_contactOptionsPinned.length == 0 && i == null && driver == null)
       return;
-    String str = '';
+    String str = '', initialValue = '';
     if (_contactOptionsPinned.length == 1 || i != null || driver != null) {
       str = 'Noter ';
       if (driver == null) {
         int index =
             _contactOptionsPinned.length == 1 ? _contactOptionsPinned[0] : i;
         str += _contacts[index].phone ?? '';
+        initialValue = _contacts[index].note ?? '';
       } else {
         str += driver.phone ?? '';
+        initialValue = driver.note ?? '';
       }
     } else {
       str = "Noter les ${_contactOptionsPinned.length} taximans";
     }
+    if (initialValue.isEmpty) initialValue = '0';
     String phoneNumberText = '';
+    TextEditingController noteCtrl =
+        new TextEditingController(text: initialValue);
     final phoneNumber = new TextField(
         keyboardType: TextInputType.number,
         autofocus: false,
+        controller: noteCtrl,
         onChanged: (String value) {
           phoneNumberText = value;
         },
@@ -549,50 +556,19 @@ class _MainListeState extends State<MainListe>
         context: context,
         barrierDismissible: true,
         builder: (BuildContext ctx) {
-          return new SimpleDialog(
-              titlePadding: new EdgeInsets.all(0.0),
-              contentPadding: new EdgeInsets.only(
-                  top: 12.0, bottom: 16.0, left: 10.0, right: 10.0),
-              title: new Container(
-                  padding: new EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 18.0),
-                  color: secondaryColor,
-                  child: new Text("$str",
-                      style: new TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.w800))),
-              children: <Widget>[
-                new Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: phoneNumber,
-                ),
-                new ButtonTheme.bar(
-                    child: new ButtonBar(children: <Widget>[
-                  new FlatButton(
-                      child: new Text("Valider"),
-                      onPressed: () {
-                        List<int> tabs = [];
-                        if (driver == null) {
-                          tabs = i != null ? [i] : _contactOptionsPinned;
-                          tabs.forEach((int value) {
-                            Person contact = _contacts[value];
-                            Services.instance.setVCard(contact.phone);
-                            contact.note = phoneNumberText;
-                          });
-                        } else {
-                          Services.instance.setVCard(driver.phone);
-                          driver.note = phoneNumberText;
-                        }
-                        setState(() {
-                          _contactOptionsPinned = [];
-                          _contactsOptions = false;
-                        });
-                        Navigator.of(context).pop();
-                      })
-                ]))
-              ]);
-        });
+          return new NoteDialog(
+              str: str,
+              initialValue: initialValue,
+              contactOptionsPinned: _contactOptionsPinned,
+              driver: driver,
+              i: i,
+              contacts: _contacts);
+        }).then((result) {
+      setState(() {
+        _contactOptionsPinned = [];
+        _contactsOptions = false;
+      });
+    });
   }
 }
 
@@ -696,6 +672,118 @@ class DriversList extends StatelessWidget {
     }
 
     return children;
+  }
+}
+
+class NoteDialog extends StatefulWidget {
+  final Person driver;
+  final String str;
+  final List<Person> contacts;
+  final int i;
+  String initialValue;
+  List<int> contactOptionsPinned = [];
+
+  NoteDialog(
+      {this.str,
+      this.contacts,
+      this.i,
+      this.initialValue,
+      this.contactOptionsPinned,
+      this.driver});
+  @override
+  _NoteDialogState createState() => new _NoteDialogState();
+}
+
+class _NoteDialogState extends State<NoteDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return new SimpleDialog(
+        titlePadding: new EdgeInsets.all(0.0),
+        contentPadding: new EdgeInsets.only(
+            top: 12.0, bottom: 16.0, left: 10.0, right: 10.0),
+        title: new Container(
+            padding: new EdgeInsets.symmetric(horizontal: 12.0, vertical: 18.0),
+            color: secondaryColor,
+            child: new Text("${widget.str}",
+                style: new TextStyle(
+                    color: Colors.white,
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.w800))),
+        children: <Widget>[
+          new Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: new Text("Choisissez la note")),
+          new Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: new Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    new Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [1, 2, 3, 4, 5].map((int value) {
+                          return new Padding(
+                              padding: const EdgeInsets.all(3.0),
+                              child: new GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      widget.initialValue = value.toString();
+                                    });
+                                  },
+                                  child: new CircleAvatar(
+                                      backgroundColor:
+                                          int.parse(widget.initialValue) ==
+                                                  value
+                                              ? primaryColor
+                                              : Colors.grey.shade300,
+                                      child: new Text('$value'))));
+                        }).toList()),
+                    new Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [6, 7, 8, 9, 10].map((int value) {
+                          return new Padding(
+                            padding: const EdgeInsets.all(3.0),
+                            child: new GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  widget.initialValue = value.toString();
+                                });
+                              },
+                              child: new CircleAvatar(
+                                  backgroundColor:
+                                      int.parse(widget.initialValue) == value
+                                          ? primaryColor
+                                          : Colors.grey.shade300,
+                                  child: new Text('$value')),
+                            ),
+                          );
+                        }).toList())
+                  ])),
+          new ButtonTheme.bar(
+              child: new ButtonBar(children: <Widget>[
+            new FlatButton(
+                child: new Text("Valider"),
+                onPressed: () {
+                  List<int> tabs = [];
+                  if (widget.driver == null) {
+                    tabs = widget.i != null
+                        ? [widget.i]
+                        : widget.contactOptionsPinned;
+                    tabs.forEach((int value) {
+                      Person contact = widget.contacts[value];
+                      Services.instance.setVCard(contact.phone);
+                      contact.note = widget.initialValue;
+                    });
+                  } else {
+                    Services.instance.setVCard(widget.driver.phone);
+                    widget.driver.note = widget.initialValue;
+                  }
+                  Navigator.of(context).pop();
+                })
+          ]))
+        ]);
   }
 }
 

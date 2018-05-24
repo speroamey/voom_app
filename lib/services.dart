@@ -50,7 +50,7 @@ class Services {
     for (int i = 0; i < 5; i++) {
       Person p = new Person("Nom du driver$i", "34 56 81 2$i", 6.345, 2.502);
       this._addOrUpdatePerson(p);
-      this.myCommands.add(new UserCommand('depart$i', 'destination$i',
+      this.commands.add(new UserCommand('depart$i', 'destination$i',
           new DateTime.now().millisecondsSinceEpoch, p));
     }
   }
