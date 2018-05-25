@@ -9,6 +9,7 @@ import 'package:voom_app/searchbar.dart';
 import 'package:location/location.dart';
 import 'package:simple_permissions/simple_permissions.dart';
 import 'package:voom_app/services.dart';
+import 'package:voom_app/settings.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/theme.dart';
 
@@ -225,9 +226,10 @@ class _MainListeState extends State<MainListe>
           }));
     }
     listChildren.add(new ListTile(
-        leading: new Icon(Icons.rate_review, color: Colors.purple.shade300),
+        leading: new Icon(Icons.info_outline, color: Colors.grey),
         title: new Text("Details du driver"),
         onTap: () {
+          Navigator.of(context).pop();
           Navigator.of(context).push(new MaterialPageRoute(
               fullscreenDialog: true,
               builder: (BuildContext context) {
@@ -328,6 +330,8 @@ class _MainListeState extends State<MainListe>
       }
       actionsMenu.add(const PopupMenuItem<ActionsMenu>(
           value: ActionsMenu.covoiturage, child: const Text('Co-voiturages')));
+      actionsMenu.add(const PopupMenuItem<ActionsMenu>(
+          value: ActionsMenu.Settings, child: const Text('Paramètres')));
       appBar = new AppBar(
           automaticallyImplyLeading: false,
           title: new Text('Voom'),
@@ -348,6 +352,11 @@ class _MainListeState extends State<MainListe>
                     }));
                   } else if (result == ActionsMenu.MyCommands) {
                     _showMyCommandsActionSheet();
+                  } else if (result == ActionsMenu.Settings) {
+                    Navigator.of(context).push(
+                        new MaterialPageRoute(builder: (BuildContext context) {
+                      return new SettingsPage();
+                    }));
                   }
                 },
                 itemBuilder: (BuildContext context) => actionsMenu)
@@ -784,11 +793,13 @@ class _NoteDialogState extends State<NoteDialog> {
                         : widget.contactOptionsPinned;
                     tabs.forEach((int value) {
                       Person contact = widget.contacts[value];
-                      Services.instance.setVCard(contact.phone);
+                      Services.instance
+                          .sendNote(contact.phone, widget.initialValue);
                       contact.note = widget.initialValue;
                     });
                   } else {
-                    Services.instance.setVCard(widget.driver.phone);
+                    Services.instance
+                        .sendNote(widget.driver.phone, widget.initialValue);
                     widget.driver.note = widget.initialValue;
                   }
                   Navigator.of(context).pop();
@@ -799,4 +810,4 @@ class _NoteDialogState extends State<NoteDialog> {
 }
 
 enum WhyFarther { Note, Command }
-enum ActionsMenu { covoiturage, MyCommands }
+enum ActionsMenu { covoiturage, MyCommands, Settings }

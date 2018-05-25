@@ -1,5 +1,10 @@
 import 'dart:math' as Math;
 
+import 'package:flutter/material.dart';
+import 'package:voom_app/src/core.dart';
+import 'package:voom_app/src/enums.dart';
+import 'package:xml/xml/nodes/element.dart';
+
 class Person {
   String name;
   String phone;
@@ -7,7 +12,7 @@ class Person {
   double long;
   String note;
   String distance;
-  bool writing;
+  bool available = true;
 
   Person(String n, String ph, double l, double lg,
       [String note = '', String distance]) {
@@ -55,9 +60,51 @@ class UserCommand {
   UserCommand(this.depart, this.destination, this.time, this.client);
 }
 
+class CoPublish {
+  String destination;
+  String depart;
+  int date;
+  String time;
+  int price;
+  int places;
+  String engin;
+  CoPublish() {
+    this.destination = '';
+    this.depart = '';
+    this.date = new DateTime.now().millisecondsSinceEpoch;
+    TimeOfDay timeOfDay = new TimeOfDay.now();
+    this.time = "${timeOfDay.hour}h:${timeOfDay.minute}";
+    this.price = 0;
+    this.places = 1;
+  }
+  XmlElement buildStanza() {
+    StanzaBuilder builder = Strophe.Builder("covoiturage", attrs: {
+      'destination': destination,
+      'depart': depart,
+      'date': date,
+      'time': time,
+      'price': price,
+      'places': places,
+      'engin': engin
+    });
+    return builder.tree();
+  }
+}
+
+class TypeEngin {
+  String name;
+  String imageUrl;
+  TypeEngin(this.name, this.imageUrl);
+  @override
+  String toString() {
+    return this.name;
+  }
+}
+
 class AppPreferences {
   static String phoneNumber = 'phoneNumber';
-  static String password = 'password';
+  static String note = 'note';
+  static String title = 'title';
 }
 
 double toRad(num n) {

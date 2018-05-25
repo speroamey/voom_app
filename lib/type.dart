@@ -93,7 +93,7 @@ class _TypePageState extends State<TypePage> {
     Services.instance.title = title;
     String _title = title == UserTitle.User ? 'User' : 'Driver';
     SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
-    sharedPrefs.setString('title', _title);
+    sharedPrefs.setString(AppPreferences.title, _title);
     Navigator.of(context).pushAndRemoveUntil(
         new MaterialPageRoute(builder: (BuildContext context) {
       return new MainListe();

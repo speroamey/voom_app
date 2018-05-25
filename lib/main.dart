@@ -71,12 +71,13 @@ class MyApp extends StatelessWidget {
     try {
       SharedPreferences preferences = await SharedPreferences.getInstance();
       String phoneNumber = preferences.getString(AppPreferences.phoneNumber);
-      String password = preferences.getString(AppPreferences.password);
+      String note = preferences.getString(AppPreferences.note);
+      String title = preferences.getString(AppPreferences.title);
       Services.instance.jid = phoneNumber;
-      Services.instance.pass = password;
-      return (phoneNumber == null || password == null)
-          ? new Home()
-          : new MainListe();
+      Services.instance.note = note ?? '';
+      Services.instance.title =
+          title == 'Driver' ? UserTitle.Driver : UserTitle.User;
+      return (phoneNumber == null) ? new Home() : new MainListe();
     } catch (e) {
       return new Text(e.toString());
     }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/src/enums.dart';
@@ -10,6 +11,8 @@ import 'server_addr.dart';
 
 class Services {
   Map<String, Person> _persons = {};
+  Map<String, List<CoPublish>> _covoiturages = {};
+  List<CoPublish> myCovoiturages = [];
   StreamController<List<Person>> _personsStream =
       new StreamController<List<Person>>();
   Map<String, List<AppMessage>> _messages = {};
@@ -30,6 +33,7 @@ class Services {
   UserTitle title = UserTitle.User;
   List<UserCommand> commands = [];
   List<UserCommand> myCommands = [];
+  String note = '';
   Function connexionCallback;
 
   Services._() {
@@ -124,6 +128,7 @@ class Services {
       print('login $status $jid, $pass');
       callback(status, condition, elem);
       if (status == Strophe.Status['CONNECTED']) {
+        this.jid = jid;
         this.handleAfterConnect();
       }
     });
@@ -163,15 +168,6 @@ class Services {
     this.handlePresence();
     this.handleMessage();
     this.handleReceiptsMessage();
-    this.handleComposingMessage();
-  }
-
-  sendComposing(String jid) {
-    if (!this._connection.connected) return;
-    jid = this._formatToJid(jid);
-    if (jid == null) return;
-    String type = 'chat';
-    this._connection.chatstates.sendComposing(jid, type);
   }
 
   bool get isConnected {
@@ -187,7 +183,7 @@ class Services {
     this.lastSentLon = this.lat;
     this.lastSentLon = this.lon;
     String _title = this.title == UserTitle.User ? 'User' : 'Driver';
-    _connection.sendPresence(Strophe
+    StanzaBuilder pres = Strophe
         .$pres({'id': this._connection.getUniqueId("sendOnLine")})
         .c('data')
         .c('lat')
@@ -201,8 +197,22 @@ class Services {
         .up()
         .c('title')
         .t(_title)
-        .up()
-        .tree());
+        .up();
+    if (this.note != null && this.note.isNotEmpty) {
+      pres.up().c('note').t(this.note);
+    }
+    if (this.myCovoiturages.length > 0) {
+      bool statement1, statement2;
+      int hour = new TimeOfDay.now().hour;
+      int date = new DateTime.now().millisecondsSinceEpoch;
+      myCovoiturages.forEach((CoPublish publish) {
+        statement1 = publish.date < date;
+        statement2 = int.parse(publish.time.split(':')[0]) < hour;
+        if (statement1 || (publish.date == date && statement2))
+          pres.up().cnode(publish.buildStanza());
+      });
+    }
+    _connection.sendPresence(pres.tree());
   }
 
   void handlePresence() {
@@ -224,27 +234,57 @@ class Services {
           return true;
         num distance = distVincenty(this._lat, this._lon,
             double.parse(lat[0].text), double.parse(lon[0].text));
-        if (distance > 2000) {
-          // if presence greater than 2Km
-          return true;
+        if (distance <= 2000) {
+          // if presence lower than 2Km
+          Person p = new Person(name.length > 0 ? name[0].text : '', phone,
+              double.parse(lat[0].text), double.parse(lon[0].text));
+          List<XmlElement> notes = presence.findAllElements('note').toList();
+          if (notes.length > 0) {
+            p.note = notes[0].text;
+          }
+          List<XmlElement> availables =
+              presence.findAllElements('available').toList();
+          if (availables.length > 0) {
+            p.available = availables[0].text == 'true' ? true : false;
+            if (!p.available) {
+              this.deletePerson(p.phone);
+            }
+          }
+          if (p.available) this._addOrUpdatePerson(p);
         }
-        Person p = new Person(name.length > 0 ? name[0].text : '', phone,
-            double.parse(lat[0].text), double.parse(lon[0].text));
-        this._addOrUpdatePerson(p);
+        List<XmlElement> covoiturages =
+            presence.findAllElements('covoiturage').toList();
+        if (covoiturages.length > 0) {
+          String depart, destination, engin, time;
+          int price, date, places;
+          CoPublish coPub;
+          covoiturages.forEach((XmlElement covoiturage) {
+            depart = covoiturage.getAttribute('depart');
+            destination = covoiturage.getAttribute('destination');
+            price = int.parse(covoiturage.getAttribute('price'));
+            date = int.parse(covoiturage.getAttribute('date'));
+            places = int.parse(covoiturage.getAttribute('places'));
+            time = covoiturage.getAttribute('time');
+            engin = covoiturage.getAttribute('engin');
+            coPub = new CoPublish();
+            coPub.depart = depart;
+            coPub.destination = destination;
+            coPub.engin = engin;
+            coPub.price = price;
+            coPub.date = date;
+            coPub.time = time;
+            coPub.places = places;
+            List<CoPublish> fromCoVoiturages = this._covoiturages[from];
+            if (fromCoVoiturages != null) {
+              fromCoVoiturages.add(coPub);
+            } else {
+              this._covoiturages[from] = [coPub];
+            }
+          });
+        }
       }
       return true;
     }, null, 'presence');
-  }
-
-  void handleComposingMessage() {
-    this._connection.addHandler((XmlElement msg) {
-      print('handleComposingMessage $msg');
-      String from = msg.getAttribute('from');
-      from = Strophe.getBareJidFromJid(from);
-      List<XmlElement> composing = msg.findAllElements('composing').toList();
-      if (composing.length > 0) {}
-      return true;
-    }, Strophe.NS['CHATSTATES'], 'message', ['chat', 'groupchat']);
   }
 
   void handleReceiptsMessage() {
@@ -311,7 +351,6 @@ class Services {
     this._connection.send(msg.tree());
   }
 
-  setVCard(String phone) {}
   sendMessage(String jid, String message,
       {String userName = '', String blockquoteId = '', String replaceId}) {
     jid = this._formatToJid(jid);
@@ -348,6 +387,7 @@ class Services {
     this._connection.send(msg.tree());
   }
 
+  sendNote(String jid, String note) {}
   disconnect([String reason = '']) {
     if (!this._connection.connected) return;
     this._connection.disconnect(reason);
@@ -469,5 +509,9 @@ class Services {
 
   updatePersonField() {
     this._personsStream.add(this._sortPersons());
+  }
+
+  addCoVoiturage(CoPublish coPublish) {
+    myCovoiturages.add(coPublish);
   }
 }

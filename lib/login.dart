@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:voom_app/mainList.dart';
+import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/type.dart';
@@ -83,8 +83,8 @@ class _LoginState extends State<Login> {
 
   _onLogin() async {
     if (phoneCtrl.text.isEmpty) return;
-    Services.instance.jid = phoneCtrl.text + '@localhost';
     if (true == true) {
+      Services.instance.jid = phoneCtrl.text + '@localhost';
       Navigator.of(context).pushAndRemoveUntil(
           new MaterialPageRoute(builder: (BuildContext context) {
         return new TypePage();
@@ -96,7 +96,7 @@ class _LoginState extends State<Login> {
     SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
     instance.login(phoneCtrl.text, "jesuis123", (int status, condition, elem) {
       if (status == Strophe.Status['CONNECTED']) {
-        sharedPrefs.setString('login', phoneCtrl.text);
+        sharedPrefs.setString(AppPreferences.phoneNumber, phoneCtrl.text);
         Navigator.of(context).pushAndRemoveUntil(
             new MaterialPageRoute(builder: (BuildContext context) {
           return new TypePage();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
 
 class PublishCoVoiturage extends StatefulWidget {
@@ -11,17 +12,18 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
     new TypeEngin("Voiture", 'images/voiture.jpg'),
     new TypeEngin("Moto", 'images/voiture.jpg')
   ];
-  TypeEngin _selectedEngin;
-  TextEditingController _fromCtrl, _toCtrl, _hourCtrl;
-
+  TextEditingController _fromCtrl, _toCtrl, _hourCtrl, _priceCtrl;
+  CoPublish coPublish = new CoPublish();
   GlobalKey<ScaffoldState> _scafold = new GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
     super.initState();
     _fromCtrl = new TextEditingController(text: '');
     _toCtrl = new TextEditingController(text: '');
     _hourCtrl = new TextEditingController(text: '');
-    _selectedEngin = this._engins[0];
+    _priceCtrl = new TextEditingController(text: '');
+    coPublish.engin = this._engins[0].toString();
   }
 
   @override
@@ -40,25 +42,83 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
                       child: new TextField(
                           controller: _fromCtrl,
                           decoration: new InputDecoration(
-                              icon: new Icon(Icons.atm), hintText: "From"))),
+                              icon: new Icon(Icons.atm),
+                              hintText: "D’où partez-vous ?"))),
                   new Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: new TextField(
                           controller: _toCtrl,
                           decoration: new InputDecoration(
                               icon: new Icon(Icons.assistant),
-                              hintText: "to"))),
+                              hintText: "Où allez-vous ?"))),
+                  new Row(children: <Widget>[
+                    //new Icon(Icons.av_timer)
+                    new Expanded(child: new Text("Date de départ")),
+                    new FlatButton(
+                        onPressed: () {
+                          showDatePicker(
+                                  context: context,
+                                  firstDate: new DateTime.now(),
+                                  initialDate: new DateTime.now(),
+                                  lastDate: new DateTime.now()
+                                      .add(new Duration(days: 30)))
+                              .then((DateTime date) {
+                            if (date != null) {
+                              coPublish.date = date.millisecondsSinceEpoch;
+                              setState(() {});
+                            }
+                          });
+                        },
+                        child: new Text(
+                            Services.instance.getTime(coPublish.date))),
+                    new FlatButton(
+                        onPressed: () {
+                          showTimePicker(
+                                  context: context,
+                                  initialTime: new TimeOfDay.now())
+                              .then((TimeOfDay time) {
+                            if (time != null) {
+                              coPublish.time = "${time.hour}h:${time.minute}";
+                              setState(() {});
+                            }
+                          });
+                        },
+                        child: new Text(coPublish.time))
+                  ]),
                   new Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 12.0),
                       child: new TextField(
-                          controller: _hourCtrl,
+                          controller: _priceCtrl,
+                          keyboardType: TextInputType.number,
                           decoration: new InputDecoration(
-                              icon: new Icon(Icons.av_timer),
-                              hintText: "Hour departure"))),
-                  new Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: new Text("Vous voyagez avec quels engins",
-                          style: new TextStyle(fontWeight: FontWeight.w500))),
+                              icon: new Icon(Icons.monetization_on),
+                              hintText: "Prix par passager"))),
+                  new ListTile(
+                      title: new Text("Nombre de places proposé",
+                          style: new TextStyle(fontWeight: FontWeight.w500)),
+                      trailing: new DropdownButtonHideUnderline(
+                          child: new Container(
+                              decoration: new BoxDecoration(
+                                  borderRadius: new BorderRadius.circular(2.0),
+                                  border: new Border.all(
+                                      color: const Color(0xFFD9D9D9))),
+                              child: new DropdownButton<int>(
+                                  items: <int>[1, 2, 3, 4, 5].map((int value) {
+                                    return new DropdownMenuItem<int>(
+                                        value: value,
+                                        child: new Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 8.0),
+                                            child: new Text(
+                                                "$value place${value>1?'s':''}")));
+                                  }).toList(),
+                                  value: coPublish.places,
+                                  onChanged: (int value) {
+                                    setState(() {
+                                      coPublish.places = value;
+                                    });
+                                  })))),
                   new Center(
                     child: new SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -69,7 +129,7 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
                               return new GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _selectedEngin = value;
+                                    coPublish.engin = value.toString();
                                   });
                                 },
                                 child: new Column(
@@ -81,7 +141,8 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
                                           padding: new EdgeInsets.all(15.0),
                                           margin: new EdgeInsets.all(8.0),
                                           decoration: new BoxDecoration(
-                                              color: _selectedEngin == value
+                                              color: coPublish.engin ==
+                                                      value.toString()
                                                   ? Colors.grey.shade300
                                                   : Colors.transparent,
                                               border: new Border.all(
@@ -93,10 +154,10 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
                                                   fit: BoxFit.contain))),
                                       new Text(value.name,
                                           style: new TextStyle(
-                                              fontWeight:
-                                                  _selectedEngin != value
-                                                      ? FontWeight.normal
-                                                      : FontWeight.bold))
+                                              fontWeight: coPublish.engin !=
+                                                      value.toString()
+                                                  ? FontWeight.normal
+                                                  : FontWeight.bold))
                                     ]),
                               );
                             }).toList())),
@@ -113,7 +174,11 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
                             content: new Text(
                                 "Veuillez renseigner tous les champs")));
                       } else {
-                        //Services.instance.sendPresence();
+                        this.coPublish.depart = _fromCtrl.text;
+                        this.coPublish.destination = _toCtrl.text;
+                        this.coPublish.price = int.parse(_priceCtrl.text);
+                        Services.instance.addCoVoiturage(this.coPublish);
+                        Services.instance.sendPresence();
                       }
                     }
                   : null)
@@ -125,10 +190,4 @@ class _PublishCoVoiturageState extends State<PublishCoVoiturage> {
         _toCtrl.text.isNotEmpty &&
         _hourCtrl.text.isNotEmpty;
   }
-}
-
-class TypeEngin {
-  String name;
-  String imageUrl;
-  TypeEngin(this.name, this.imageUrl);
 }

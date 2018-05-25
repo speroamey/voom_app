@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:voom_app/publish_covoiturage.dart';
+import 'package:voom_app/services.dart';
 
 class CoVoiturage extends StatefulWidget {
   @override
@@ -9,10 +10,13 @@ class CoVoiturage extends StatefulWidget {
 class _CoVoiturageState extends State<CoVoiturage> {
   FilterEnum currentFilter = FilterEnum.Name;
 
+  GlobalKey<ScaffoldState> _scaffold = new GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     TapDownDetails _details;
     return new Scaffold(
+        key: _scaffold,
         backgroundColor: Colors.grey.shade300,
         appBar: _buildAppBar(),
         body: new ListView.builder(
@@ -128,11 +132,16 @@ class _CoVoiturageState extends State<CoVoiturage> {
           new PopupMenuButton<CoActions>(
               onSelected: (CoActions result) {
                 if (result == CoActions.Publier) {
-                  Navigator.of(context).push(new MaterialPageRoute(
-                      fullscreenDialog: true,
-                      builder: (BuildContext context) {
-                        return new PublishCoVoiturage();
-                      }));
+                  if (Services.instance.isConnected) {
+                    Navigator.of(context).push(new MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (BuildContext context) {
+                          return new PublishCoVoiturage();
+                        }));
+                  } else {
+                    _scaffold.currentState.showSnackBar(new SnackBar(
+                        content: new Text("Vous n'êtes pas connecté")));
+                  }
                 }
               },
               itemBuilder: (BuildContext context) =>
