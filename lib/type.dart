@@ -13,37 +13,54 @@ class _TypePageState extends State<TypePage> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    Color _color = Colors.blueGrey.shade300.withOpacity(0.5);
+    Color _color = Colors.red; 
+    /* blueGrey.shade300.withOpacity(0.5) */
     return new Scaffold(
         appBar: new AppBar(
             backgroundColor: _color,
             elevation: 0.0,
-            title: new Text("Log in",
-                style: new TextStyle(color: Colors.black38))),
+            title: new Text("Profile",
+                style: new TextStyle(color: Colors.white,fontWeight: FontWeight.w400))),
         body: new Container(
+          
             color: _color,
             child: new Column(children: <Widget>[
+              
               new Expanded(
-                  child: new Center(
+                    child: new Container(
+                     decoration: BoxDecoration(color: _color),
+                     child: new Center(
+                      
                       child: new Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                     new Container(
-                        color: Colors.red,
+                    
+                       /*  color: Colors.red, */
                         constraints: new BoxConstraints(
-                            minWidth: 60.0,
-                            maxWidth: 60.0,
+                         /*    minWidth: 160.0,
+                            maxWidth: 160.0, */
                             maxHeight: height / 5,
-                            minHeight: 60.0),
-                        child: new Image.asset("images/voiture.jpg",
-                            fit: BoxFit.cover)),
+                            minHeight: 100.0),
+                        child: new Container(
+                           width: 120.0,
+                           height: 120.0,
+                          decoration: new BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: new DecorationImage(
+                              fit:BoxFit.fill,
+                              image: AssetImage("images/avatar.gif"),
+                            )
+                          ),
+                        )
+                      ),
                     new Padding(
                         padding: new EdgeInsets.symmetric(
                             vertical: 8.0,
                             horizontal: MediaQuery.of(context).size.width / 4),
-                        child: new Text(
-                            "Vous pouvez choisir driver si vous êtes un chauffeur....",
+                        /* child: new Text(
+                            "Choisissez le profile...",
                             overflow: TextOverflow.ellipsis,
                             softWrap: true,
                             maxLines: 3,
@@ -51,8 +68,11 @@ class _TypePageState extends State<TypePage> {
                             style: new TextStyle(
                                 color: Colors.black38,
                                 fontWeight: FontWeight.w400,
-                                fontSize: 20.0)))
-                  ]))),
+                                fontSize: 20.0)) */
+                                )
+                  ]))
+                    ),
+                  ),
               new Expanded(
                   child: new Container(
                 color: Theme.of(context).cardColor,
@@ -62,7 +82,7 @@ class _TypePageState extends State<TypePage> {
                         vertical: 5.0, horizontal: 3.0),
                     child: new ListTile(
                         leading: null,
-                        title: new Text("Choisissez votre compte",
+                        title: new Text("Choisissez Votre Profile",
                             style: new TextStyle(fontWeight: FontWeight.bold))),
                   ),
                   new ListTile(

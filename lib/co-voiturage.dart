@@ -33,26 +33,26 @@ class _CoVoiturageState extends State<CoVoiturage> {
                       title: new Text("Nom du pusher",
                           overflow: TextOverflow.ellipsis,
                           style: new TextStyle(
-                              fontWeight: FontWeight.w300,
-                              color: Colors.black,
-                              fontSize: 22.0)),
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                              fontSize: 16.0)),
                       subtitle: new Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: <Widget>[
                             new Text("Lomé-Cotonou",
                                 style: new TextStyle(
-                                    color: Colors.black54,
-                                    fontWeight: FontWeight.w300,
-                                    fontSize: 15.0)),
-                            new Row(children: <Widget>[
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 14.0)),
+                            /* new Row(children: <Widget>[
                               new Padding(
                                   padding: const EdgeInsets.only(right: 1.0),
                                   child: new Icon(Icons.av_timer, size: 10.0)),
                               new Text("dans 35mn",
                                   style: new TextStyle(
                                       color: Colors.black54, fontSize: 11.0))
-                            ])
+                            ]) */
                           ]),
                       trailing: new Container(
                         alignment: Alignment.centerRight,
@@ -101,9 +101,9 @@ class _CoVoiturageState extends State<CoVoiturage> {
                                         style: new TextStyle(
                                             fontSize: 10.0,
                                             color:
-                                                Colors.black87.withOpacity(0.7),
+                                                Colors.black87.withOpacity(1.0),
                                             fontStyle: FontStyle.italic,
-                                            fontWeight: FontWeight.w200))
+                                            fontWeight: FontWeight.w300))
                                   ])
                             ]),
                       ),
