@@ -18,7 +18,7 @@ class _DetailsPageState extends State<DetailsPage> {
         //appBar: new AppBar(title: new Text("A propos du conducteur")),
         body: new Column(children: <Widget>[
       new Card(
-        margin: new EdgeInsets.all(0.0),
+        margin: const EdgeInsets.all(0.0),
         shape: new RoundedRectangleBorder(),
         elevation: 4.0,
         child: new Container(
@@ -43,31 +43,29 @@ class _DetailsPageState extends State<DetailsPage> {
                               new Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
                                   child: new Center(
-                                    child: new Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          new Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 12.0),
-                                            child: new Text(
-                                                widget.driver.name ?? '',
-                                                style: new TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w400,
-                                                    fontSize: 20.0)),
-                                          ),
-                                          new Padding(
+                                      child: new Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                        new Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 12.0),
+                                          child: new Text(
+                                              widget.driver.name ?? '',
+                                              style: new TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 20.0)),
+                                        ),
+                                        new Padding(
                                             padding: const EdgeInsets.only(
                                                 left: 5.0),
                                             child: new Icon(Icons.verified_user,
                                                 color: Colors.redAccent,
-                                                size: 15.0),
-                                          )
-                                        ]),
-                                  )),
+                                                size: 15.0))
+                                      ]))),
                               new Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: new Text(widget.driver.phone ?? '',
