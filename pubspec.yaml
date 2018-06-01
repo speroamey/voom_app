@@ -6,6 +6,9 @@ dependencies:
   shared_preferences: "^0.4.1"
   connectivity: "^0.3.0"
   simple_permissions: "^0.1.2"
+  sqflite: any
+  path_provider: "^0.3.1"
+  image_picker:
   flutter:
     sdk: flutter
 
