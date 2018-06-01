@@ -148,7 +148,7 @@ class _MainListeState extends State<MainListe>
     return new Container(
         decoration: new BoxDecoration(color: Colors.grey.shade200),
         child: new ListView.builder(
-            padding: new EdgeInsets.all(0.0),
+            padding: new EdgeInsets.all(6.0),
             itemBuilder: (BuildContext context, int index) {
               bool isSelected = this._contactOptionsPinned.contains(index);
               return new DriversList(
@@ -627,7 +627,9 @@ class DriversList extends StatelessWidget {
                         new Container(
                             margin: new EdgeInsets.only(right: 8.0),
                             padding: const EdgeInsets.all(0.0),
-                            child: new Stack(children: _buildAvatar())),
+                            child: new Stack(children: _buildAvatar()
+                          )
+                        ),
                         new Expanded(
                             child: new Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,9 +641,9 @@ class DriversList extends StatelessWidget {
                                       .textTheme
                                       .headline
                                       .copyWith(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black54)),
+                                          fontSize: 15.0,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black87)),
                               new Text(driver.phone,
                                   style: new TextStyle(
                                       color: Colors.black54,
@@ -673,22 +675,27 @@ class DriversList extends StatelessWidget {
   List<Widget> _buildAvatar() {
     List<Widget> children = [
       new Container(
-          width: 60.0,
-          height: 60.0,
+          width: 57.0,
+          height: 57.0,
           decoration:
-              new BoxDecoration(shape: BoxShape.rectangle, color: primaryColor),
+              new BoxDecoration(shape: BoxShape.circle, color: primaryColor),
           child: new ClipRect(
               child: new InkWell(
                   child: new Center(
-                      child: new Icon(Icons.person,
-                          color: isSelected ? Colors.black54 : Colors.white)))))
+                      child: new Icon(!isSelected?Icons.person:null,
+                      color: isSelected ? Colors.black54 : Colors.white)
+         )
+        )
+      )
+     )
     ];
 
     if (isSelected) {
       children.add(new Center(
           child: new IconButton(
+              alignment: Alignment.centerRight,
               onPressed: () {},
-              icon: new Icon(Icons.check, size: 30.0, color: Colors.white))));
+              icon: new Icon(Icons.check, size: 20.0, color: Colors.white))));
     }
 
     return children;

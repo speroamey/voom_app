@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voom_app/mainList.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 class TypePage extends StatefulWidget {
   @override
@@ -10,59 +13,97 @@ class TypePage extends StatefulWidget {
 }
 
 class _TypePageState extends State<TypePage> {
+  File image;
+  bool imgExiste=false;
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    Color _color = Colors.blueGrey.shade300.withOpacity(0.5);
+    Color _color = Colors.red; 
+    /* blueGrey.shade300.withOpacity(0.5) */
     return new Scaffold(
         appBar: new AppBar(
             backgroundColor: _color,
             elevation: 0.0,
-            title: new Text("Log in",
-                style: new TextStyle(color: Colors.black38))),
-        body: new Container(
-            color: _color,
-            child: new Column(children: <Widget>[
+            title: new Text("Profile",
+                style: new TextStyle(color: Colors.white,fontWeight: FontWeight.w400))),
+            body: new Container(
+              color: _color,
+              child: new Column(children: <Widget>[
+                
               new Expanded(
-                  child: new Center(
+                    child: new Container(
+                     decoration: BoxDecoration(color: _color),
+                     child: new Center(
+                      
                       child: new Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
-                    new Container(
-                        color: Colors.red,
-                        constraints: new BoxConstraints(
-                            minWidth: 60.0,
-                            maxWidth: 60.0,
-                            maxHeight: height / 5,
-                            minHeight: 60.0),
-                        child: new Image.asset("images/voiture.jpg",
-                            fit: BoxFit.cover)),
-                    new Padding(
-                        padding: new EdgeInsets.symmetric(
-                            vertical: 8.0,
-                            horizontal: MediaQuery.of(context).size.width / 4),
-                        child: new Text(
-                            "Vous pouvez choisir driver si vous êtes un chauffeur....",
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
-                            maxLines: 3,
-                            textAlign: TextAlign.center,
-                            style: new TextStyle(
-                                color: Colors.black38,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 20.0)))
-                  ]))),
+                            new Container(
+                                constraints: new BoxConstraints(
+                                /*    minWidth: 160.0,
+                                maxWidth: 160.0, */
+                                maxHeight: height / 5,
+                                minHeight: 100.0),
+
+                                child: new Stack(
+
+                                  alignment: const Alignment(1.2, 1.1),
+                                  children: <Widget>[
+                                     new Container(
+                                        width: 120.0,
+                                        height: 120.0,
+                                        child: new Container(
+                                          decoration: new BoxDecoration(
+                                            color: Colors.white24,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        
+                                          child: ClipOval(
+                                            child: imgExiste?new Image.file(image,fit:BoxFit.contain)
+                                            :new Icon(Icons.person,size: 70.0,color: Colors.white,)
+                                            ),
+                                          
+                                        ),
+                                       
+                                     ),
+                                     new Card(
+                                       color: Colors.redAccent,
+                                       elevation: 15.0,
+                                       shape:CircleBorder(),
+                                       child:  new CircleAvatar(
+                                          radius: 25.0,
+                                          child: new IconButton(
+                                             icon: new Icon(Icons.camera_alt,size: 25.0,color: Colors.white),
+                                          onPressed: setImage,
+                                       ),
+                                      ),
+                                     ),
+                                    
+                                  ],
+                                )
+                         ),
+                          new Padding(
+                              padding: new EdgeInsets.symmetric(
+                                vertical: 8.0,
+                                horizontal: MediaQuery.of(context).size.width / 4),                          
+                            )
+                          ]
+                        )
+                      )
+                    ),
+                  ),
               new Expanded(
                   child: new Container(
-                color: Theme.of(context).cardColor,
-                child: new ListView(children: <Widget>[
+                  color: Theme.of(context).cardColor,
+                  child: new ListView(children: <Widget>[
                   new Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 5.0, horizontal: 3.0),
                     child: new ListTile(
                         leading: null,
-                        title: new Text("Choisissez votre compte",
+                        title: new Text("Choisissez Votre Profile",
                             style: new TextStyle(fontWeight: FontWeight.bold))),
                   ),
                   new ListTile(
@@ -86,6 +127,16 @@ class _TypePageState extends State<TypePage> {
                 ]),
               ))
             ])));
+  }
+
+  setImage() async{
+    File img= await ImagePicker.pickImage(source: ImageSource.gallery );
+    image=img;
+    print(img.path);
+   
+    setState(() {
+       imgExiste=true; 
+      });
   }
 
   setTitleAndNavigate(UserTitle title) async {

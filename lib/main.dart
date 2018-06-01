@@ -96,15 +96,8 @@ class HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return new Container(
         decoration: new BoxDecoration(
-            gradient: new LinearGradient(
-                colors: [
-                  primaryColor,
-                  secondaryColor,
-                  secondaryColor.withOpacity(0.5)
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                stops: [0.0, 0.5, 1.0])),
+          color: Colors.red
+        ),
         child: new Center(
             child: new Column(
                 mainAxisAlignment: MainAxisAlignment.center,

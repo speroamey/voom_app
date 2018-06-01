@@ -31,22 +31,43 @@ class _LoginState extends State<Login> {
       tag: "log",
       child: CircleAvatar(
         backgroundColor: Colors.transparent,
-        radius: 48.0,
-        child: Image.asset("images/voiture.jpg"),
-      ),
+        radius: 50.0,
+        child:new Container(
+          width: 90.0,
+          height: 90.0,
+          decoration: new BoxDecoration(
+              shape: BoxShape.circle,
+              image: new DecorationImage(
+                fit: BoxFit.fill,
+                image: new AssetImage(  "images/voiture.jpg")
+            )
+          )
+        ),
+     ),
     );
 
-    final phoneNumber = new TextFormField(
-      controller: phoneCtrl,
-      keyboardType: TextInputType.phone,
-      autofocus: false,
-      onFieldSubmitted: (String value) {
-        _onLogin();
-      },
-      decoration: InputDecoration(
-        hintText: "Numéro de téléphone",
-        contentPadding: EdgeInsets.fromLTRB(20.0, 11.0, 20.0, 11.0),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+    final phoneNumber = new Theme(
+      data: new ThemeData(
+        primaryColor:  Colors.white30,
+        hintColor: Colors.white30
+      ),
+      child: new TextFormField(
+        controller: phoneCtrl,
+        style: new TextStyle(color: Colors.white),
+        keyboardType: TextInputType.phone,
+        autofocus: true,
+        onFieldSubmitted: (String value) {
+          _onLogin();
+        },
+        decoration: InputDecoration(
+          
+          hintText: "Numéro de téléphone",
+          contentPadding: EdgeInsets.fromLTRB(20.0, 11.0, 20.0, 11.0),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32.0),
+           
+            ),
+        ),
       ),
     );
 
@@ -57,28 +78,31 @@ class _LoginState extends State<Login> {
             shadowColor: phoneCtrl.text.trim().isEmpty
                 ? Colors.transparent
                 : Colors.redAccent.shade100,
-            elevation: 5.0,
+            elevation: 7.0,
             child: new FlatButton(
                 textColor: Colors.white,
-                disabledColor: Colors.grey.shade300,
-                disabledTextColor: Colors.black26,
+                disabledColor: Colors.white,
+                disabledTextColor: Colors.black38,
                 onPressed: phoneCtrl.text.trim().isEmpty ? null : _onLogin,
-                color: Colors.redAccent,
+                color: Colors.red[600],
                 child: new Text("Validez"))));
 
     return new Scaffold(
-        backgroundColor: Colors.white,
-        body: new Center(
-            child: new ListView(
-                shrinkWrap: true,
-                padding: EdgeInsets.only(left: 24.0, right: 24.0),
-                children: <Widget>[
-              logo,
-              SizedBox(height: 48.0),
-              phoneNumber,
-              SizedBox(height: 8.0),
-              loginButton
-            ])));
+       /*  backgroundColor: Colors.white, */
+        body: new Container(
+                color: Colors.red,
+                child: new Center(
+                child: new ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.only(left: 24.0, right: 24.0),
+                  children: <Widget>[
+                  logo,
+                  SizedBox(height: 48.0),
+                  phoneNumber,
+                  SizedBox(height: 8.0),
+                  loginButton
+              ])),
+        ));
   }
 
   _onLogin() async {

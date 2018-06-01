@@ -26,7 +26,7 @@ class _DetailsPageState extends State<DetailsPage> {
             height: height * 0.7,
             child: new Stack(children: <Widget>[
               new Column(children: <Widget>[
-                new Expanded(
+                new Expanded( 
                     child: new Container(
                         decoration: new BoxDecoration(
                             image: new DecorationImage(
