@@ -70,7 +70,7 @@ class _MainListeState extends State<MainListe>
       Services.instance.lat = _currentLocation['latitude'];
       Services.instance.lon = _currentLocation['longitude'];
       if (!Services.instance.isConnected) {
-        Services.instance.login(Services.instance.jid, Services.instance.pass,
+        Services.instance.login(Services.instance.jid,
             (int status, condition, elem) {
           if (status == Strophe.Status['CONNECTED']) {} else if (status ==
               Strophe.Status['CONNFAIL']) {}
@@ -627,9 +627,7 @@ class DriversList extends StatelessWidget {
                         new Container(
                             margin: new EdgeInsets.only(right: 8.0),
                             padding: const EdgeInsets.all(0.0),
-                            child: new Stack(children: _buildAvatar()
-                          )
-                        ),
+                            child: new Stack(children: _buildAvatar())),
                         new Expanded(
                             child: new Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,12 +680,8 @@ class DriversList extends StatelessWidget {
           child: new ClipRect(
               child: new InkWell(
                   child: new Center(
-                      child: new Icon(!isSelected?Icons.person:null,
-                      color: isSelected ? Colors.black54 : Colors.white)
-         )
-        )
-      )
-     )
+                      child: new Icon(!isSelected ? Icons.person : null,
+                          color: isSelected ? Colors.black54 : Colors.white)))))
     ];
 
     if (isSelected) {

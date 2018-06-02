@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
@@ -16,9 +17,11 @@ class _LoginState extends State<Login> {
     fontSize: 15.0,
     color: Colors.white,
   );
+
+  GlobalKey<ScaffoldState> _scaffold = new GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     phoneCtrl.addListener(() {
       setState(() {});
@@ -28,48 +31,35 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     final logo = new Hero(
-      tag: "log",
-      child: CircleAvatar(
-        backgroundColor: Colors.transparent,
-        radius: 50.0,
-        child:new Container(
-          width: 90.0,
-          height: 90.0,
-          decoration: new BoxDecoration(
-              shape: BoxShape.circle,
-              image: new DecorationImage(
-                fit: BoxFit.fill,
-                image: new AssetImage(  "images/voiture.jpg")
-            )
-          )
-        ),
-     ),
-    );
+        tag: "log",
+        child: CircleAvatar(
+            backgroundColor: Colors.transparent,
+            radius: 50.0,
+            child: new Container(
+                width: 90.0,
+                height: 90.0,
+                decoration: new BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: new DecorationImage(
+                        fit: BoxFit.fill,
+                        image: new AssetImage("images/voiture.jpg"))))));
 
     final phoneNumber = new Theme(
-      data: new ThemeData(
-        primaryColor:  Colors.white30,
-        hintColor: Colors.white30
-      ),
-      child: new TextFormField(
-        controller: phoneCtrl,
-        style: new TextStyle(color: Colors.white),
-        keyboardType: TextInputType.phone,
-        autofocus: true,
-        onFieldSubmitted: (String value) {
-          _onLogin();
-        },
-        decoration: InputDecoration(
-          
-          hintText: "Numéro de téléphone",
-          contentPadding: EdgeInsets.fromLTRB(20.0, 11.0, 20.0, 11.0),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(32.0),
-           
-            ),
-        ),
-      ),
-    );
+        data: new ThemeData(
+            primaryColor: Colors.white30, hintColor: Colors.white30),
+        child: new TextFormField(
+            controller: phoneCtrl,
+            style: new TextStyle(color: Colors.white),
+            keyboardType: TextInputType.phone,
+            autofocus: true,
+            onFieldSubmitted: (String value) {
+              signUp();
+            },
+            decoration: InputDecoration(
+                hintText: "Numéro de téléphone",
+                contentPadding: EdgeInsets.fromLTRB(20.0, 11.0, 20.0, 11.0),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(32.0)))));
 
     final loginButton = new Padding(
         padding: EdgeInsets.symmetric(vertical: 12.0),
@@ -77,62 +67,102 @@ class _LoginState extends State<Login> {
             borderRadius: BorderRadius.circular(30.0),
             shadowColor: phoneCtrl.text.trim().isEmpty
                 ? Colors.transparent
-                : Colors.redAccent.shade100,
-            elevation: 7.0,
+                : Colors.redAccent.shade700,
+            elevation: 12.0,
             child: new FlatButton(
                 textColor: Colors.white,
                 disabledColor: Colors.white,
                 disabledTextColor: Colors.black38,
-                onPressed: phoneCtrl.text.trim().isEmpty ? null : _onLogin,
+                onPressed: phoneCtrl.text.trim().isEmpty ? null : signUp,
                 color: Colors.red[600],
                 child: new Text("Validez"))));
 
     return new Scaffold(
-       /*  backgroundColor: Colors.white, */
+        key: _scaffold,
         body: new Container(
-                color: Colors.red,
-                child: new Center(
+            color: Colors.red,
+            child: new Center(
                 child: new ListView(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(left: 24.0, right: 24.0),
-                  children: <Widget>[
+                    shrinkWrap: true,
+                    padding: EdgeInsets.only(left: 24.0, right: 24.0),
+                    children: <Widget>[
                   logo,
                   SizedBox(height: 48.0),
                   phoneNumber,
                   SizedBox(height: 8.0),
                   loginButton
-              ])),
-        ));
+                ]))));
   }
 
   _onLogin() async {
     if (phoneCtrl.text.isEmpty) return;
-    if (true == true) {
-      Services.instance.jid = phoneCtrl.text + '@localhost';
-      Navigator.of(context).pushAndRemoveUntil(
-          new MaterialPageRoute(builder: (BuildContext context) {
-        return new TypePage();
-      }), ModalRoute.withName('/types'));
-      return;
-    }
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    print('status');
 
     Services instance = Services.instance;
     SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
-    instance.login(phoneCtrl.text, "jesuis123", (int status, condition, elem) {
+    instance.login(phoneCtrl.text, (int status, condition, elem) {
+      print('$status');
       if (status == Strophe.Status['CONNECTED']) {
         sharedPrefs.setString(AppPreferences.phoneNumber, phoneCtrl.text);
         Navigator.of(context).pushAndRemoveUntil(
             new MaterialPageRoute(builder: (BuildContext context) {
           return new TypePage();
         }), ModalRoute.withName('/types'));
-      } else if (status == Strophe.Status['CONNFAIL']) {
-        /* Navigator.of(context, rootNavigator: true).pop();
-        Scaffold.of(context).showSnackBar(new SnackBar(
-            content:
-                new Text(""))); */
+      } else if (status == Strophe.Status['AUTHFAIL'] ||
+          status == Strophe.Status['CONNFAIL'] ||
+          status == Strophe.Status['CONNTIMEOUT'] ||
+          status == Strophe.Status['DISCONNECTING']) {
+        if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+      } else if (status == -1) {
+        _scaffold.currentState.showSnackBar(new SnackBar(
+            content: new Text("Le serveur est inaccessible,dev mode")));
       }
     });
+  }
 
+  signUp() async {
+    if (phoneCtrl.text.isEmpty) return;
+    /* if (true == true) {
+      Services.instance.jid = phoneCtrl.text + '@localhost';
+      Navigator.of(context).pushAndRemoveUntil(
+          new MaterialPageRoute(builder: (BuildContext context) {
+        return new TypePage();
+      }), ModalRoute.withName('/types'));
+      return;
+    } */
+    Services instance = Services.instance;
+    SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
+    instance.register(phoneCtrl.text, (int status, condition, elem) {
+      print('$status');
+      if (status == Strophe.Status['CONNECTED']) {
+        sharedPrefs.setString(AppPreferences.phoneNumber, phoneCtrl.text);
+        Navigator.of(context).pushAndRemoveUntil(
+            new MaterialPageRoute(builder: (BuildContext context) {
+          return new TypePage();
+        }), ModalRoute.withName('/types'));
+      } else if (status == Strophe.Status['AUTHFAIL'] ||
+          status == Strophe.Status['CONNFAIL'] ||
+          status == Strophe.Status['CONNTIMEOUT'] ||
+          status == Strophe.Status['DISCONNECTING'] ||
+          status == Strophe.Status['REGIFAIL'] ||
+          status == Strophe.Status['NOTACCEPTABLE']) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          _scaffold.currentState.showSnackBar(new SnackBar(
+              content: new Text("une erreur inattendue lors de la connexion")));
+        }
+      } else if (status == Strophe.Status['CONFLICT']) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          _scaffold.currentState.showSnackBar(
+              new SnackBar(content: new Text("Le contact existe deja")));
+        }
+      } else if (status == -1) {
+        _scaffold.currentState.showSnackBar(new SnackBar(
+            content: new Text("Le serveur est inaccessible,dev mode")));
+      }
+    });
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -148,7 +178,10 @@ class _LoginState extends State<Login> {
                       child: new Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: new Text("Connexion en cours",
-                              overflow: TextOverflow.ellipsis)))
+                              overflow: TextOverflow.ellipsis,
+                              style: new TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w300))))
                 ])
           ]);
         });

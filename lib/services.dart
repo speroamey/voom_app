@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/src/enums.dart';
+import 'package:voom_app/src/plugins/administration.dart';
+import 'package:voom_app/src/plugins/disco.dart';
+import 'package:voom_app/src/plugins/plugins.dart';
+import 'package:voom_app/src/plugins/pubsub.dart';
+import 'package:voom_app/src/plugins/register.dart';
+import 'package:voom_app/src/plugins/vcard-temp.dart';
 import 'package:xml/xml/nodes/document.dart';
 import 'package:xml/xml/nodes/element.dart';
 import 'package:xml/xml/nodes/node.dart';
@@ -14,7 +20,7 @@ class Services {
   Map<String, List<CoPublish>> _covoiturages = {};
   List<CoPublish> myCovoiturages = [];
   StreamController<List<Person>> _personsStream =
-      new StreamController<List<Person>>();
+      new StreamController.broadcast();
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
   static Services _instance;
@@ -28,16 +34,27 @@ class Services {
   num lastSentLat;
   num lastSentLon;
 
-  String _host = hostAddress;
+  String _host = "10.42.0.1"; //hostAddress;
   String name = "andre";
   UserTitle title = UserTitle.User;
   List<UserCommand> commands = [];
   List<UserCommand> myCommands = [];
   String note = '';
   Function connexionCallback;
+  Map<String, PluginClass> _plugins = {
+    'register': new RegisterPlugin(),
+    'vcard': new VCardTemp(),
+    'disco': new DiscoPlugin(),
+    'pubsub': new PubsubPlugin(),
+    'admin': new AdministrationPlugin()
+  };
+  static Settings settings = new Settings();
 
   Services._() {
     _url = "ws://$_host:5280/xmpp";
+    _plugins.forEach((String name, PluginClass ptype) {
+      Strophe.addConnectionPlugin(name, ptype);
+    });
     _connection = Strophe.Connection(_url);
     _connection.xmlInput = (stanza) {
       print("input $stanza");
@@ -121,10 +138,10 @@ class Services {
     return "$phone@$domain";
   }
 
-  login(String phone, String pass, callback) {
+  login(String phone, Function(int, dynamic, dynamic) callback) {
     String jid = this._formatToJid(phone);
     this.connexionCallback = callback;
-    _connection.connect(jid, pass ?? _pass, (int status, condition, elem) {
+    _connection.connect(jid, _pass, (int status, condition, elem) {
       print('login $status $jid, $pass');
       callback(status, condition, elem);
       if (status == Strophe.Status['CONNECTED']) {
@@ -134,12 +151,14 @@ class Services {
     });
   }
 
-  register(String phone, String password) {
+  register(String phone, Function(int, dynamic, dynamic) callback) {
+    this.connexionCallback = callback;
     this._connection.register.connect(this._domain,
         (int status, condition, ele) {
+      callback(status, condition, ele);
       if (status == Strophe.Status['REGISTER']) {
         print('register');
-        this._pass = password ?? this._pass;
+        this._pass = this._pass;
         this._connection.register.fields['username'] = phone;
         this._connection.register.fields['password'] = this._pass;
         this._connection.register.fields['name'] = phone;

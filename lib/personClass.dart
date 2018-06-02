@@ -15,7 +15,7 @@ class Person {
   bool available = true;
 
   Person(String n, String ph, double l, double lg,
-     [String  note="",  String distance]) {
+      [String note = "", String distance]) {
     this.name = n;
     this.phone = ph;
     this.lat = l;
@@ -27,27 +27,27 @@ class Person {
   Person.map(dynamic obj) {
     this.name = obj["username"];
     this.phone = obj["telephone"];
-    this.long=obj["longitude"];
-    this.lat=obj["latitude"];
-    this.note=obj["note"];
-    this.distance=obj["distance"];
+    this.long = obj["longitude"];
+    this.lat = obj["latitude"];
+    this.note = obj["note"];
+    this.distance = obj["distance"];
   }
 
   String get username => name;
   String get telephone => phone;
   double get longitude => long;
   double get latitude => lat;
-  String    get stars => note;
-  String    get distances => distance;
+  String get stars => note;
+  String get distances => distance;
 
-   Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
     map["username"] = name;
     map["password"] = phone;
-    map["longitude"]=long;
-    map["latitude"]=lat;
-    map["note"]=note;
-    map["distance"]=distance;
+    map["longitude"] = long;
+    map["latitude"] = lat;
+    map["note"] = note;
+    map["distance"] = distance;
 
     return map;
   }
@@ -133,6 +133,15 @@ class AppPreferences {
   static String phoneNumber = 'phoneNumber';
   static String note = 'note';
   static String title = 'title';
+}
+
+class Settings {
+  int distanceToShow = 2; // en Km
+  int noteSetting = 5;
+  String taxation = '150';
+  bool orderDriverByName = false;
+  bool covoiturageNotif = false;
+  bool commandNotif = true;
 }
 
 double toRad(num n) {

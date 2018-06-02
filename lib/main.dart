@@ -6,7 +6,6 @@ import 'package:voom_app/login.dart';
 import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
-import 'package:voom_app/theme.dart';
 import 'package:voom_app/type.dart';
 import 'mainList.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -95,9 +94,7 @@ class HomeState extends State<Home> {
 
   Widget build(BuildContext context) {
     return new Container(
-        decoration: new BoxDecoration(
-          color: Colors.red
-        ),
+        decoration: new BoxDecoration(color: Colors.red),
         child: new Center(
             child: new Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -111,7 +108,6 @@ class HomeState extends State<Home> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     new Timer(new Duration(seconds: 5), () {
       Navigator.of(context).pushAndRemoveUntil(
