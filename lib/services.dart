@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
+
 
 import 'package:flutter/material.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/src/enums.dart';
+import 'package:voom_app/src/plugins/vcard-temp.dart';
 import 'package:xml/xml/nodes/document.dart';
 import 'package:xml/xml/nodes/element.dart';
 import 'package:xml/xml/nodes/node.dart';
@@ -37,7 +40,13 @@ class Services {
   Function connexionCallback;
 
   Services._() {
+
+
+  
+
+
     _url = "ws://$_host:5280/xmpp";
+    Strophe.addConnectionPlugin('vcard', new VCardTemp());
     _connection = Strophe.Connection(_url);
     _connection.xmlInput = (stanza) {
       print("input $stanza");
@@ -515,3 +524,6 @@ class Services {
     myCovoiturages.add(coPublish);
   }
 }
+
+
+ 
