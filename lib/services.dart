@@ -513,7 +513,11 @@ class Services {
 
   void deletePerson(String from) {
     if (from == null || from.isEmpty) return;
+    from = Strophe.getNodeFromJid(from) ?? from;
+    print(this._persons);
     this._persons.remove(from);
+    print(this._persons);
+    print(from);
     this.deleteAllMessage(from);
     this._personsStream.add(this._sortPersons());
   }
