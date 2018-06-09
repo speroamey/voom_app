@@ -97,12 +97,10 @@ class _LoginState extends State<Login> {
   _onLogin() async {
     if (phoneCtrl.text.isEmpty) return;
     SystemChannels.textInput.invokeMethod('TextInput.hide');
-    print('status');
 
     Services instance = Services.instance;
     SharedPreferences sharedPrefs = await SharedPreferences.getInstance();
     instance.login(phoneCtrl.text, (int status, condition, elem) {
-      print('$status');
       if (status == Strophe.Status['CONNECTED']) {
         sharedPrefs.setString(AppPreferences.phoneNumber, phoneCtrl.text);
         Navigator.of(context).pushAndRemoveUntil(

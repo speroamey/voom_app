@@ -53,7 +53,7 @@ class Services {
   static Settings settings = new Settings();
 
   Services._() {
-    _url = "ws://$_host:5280/xmpp";
+    _url = "ws://$_host:5280/ws";
     _plugins.forEach((String name, PluginClass ptype) {
       Strophe.addConnectionPlugin(name, ptype);
     });
