@@ -117,8 +117,18 @@ class _MainListeState extends State<MainListe>
             stream: Services.instance.persons,
             builder:
                 (BuildContext context, AsyncSnapshot<List<Person>> snapchot) {
-              if (snapchot.hasError || snapchot.data == null) {
-                return new Center(child: new CircularProgressIndicator());
+              if (snapchot.hasError ||
+                  snapchot.data == null ||
+                  snapchot.data.length == 0) {
+                return new Center(
+                    child: new Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: new Text('Pas de chauffeurs en ligne',
+                            style: new TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 18.0,
+                                fontStyle: FontStyle.italic,
+                                color: Colors.black45))));
               }
               _contacts = snapchot.data;
               return Services.instance.title == UserTitle.User

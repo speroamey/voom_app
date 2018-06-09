@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:local_notifications/local_notifications.dart';
@@ -144,7 +143,6 @@ class Services {
     String jid = this._formatToJid(phone);
     this.connexionCallback = callback;
     _connection.connect(jid, _pass, (int status, condition, elem) {
-      print('login $status $jid, $pass');
       callback(status, condition, elem);
       if (status == Strophe.Status['CONNECTED']) {
         this.jid = jid;
@@ -185,6 +183,7 @@ class Services {
   }
 
   handleAfterConnect() {
+    this._personsStream.add([]);
     this.sendPresence();
     this.handlePresence();
     this.handleMessage();
@@ -238,7 +237,6 @@ class Services {
           pres.up().cnode(publish.buildStanza());
       });
     }
-    print(pres.toString());
     _connection.sendPresence(pres.tree());
   }
 
