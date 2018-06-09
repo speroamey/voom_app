@@ -2,14 +2,15 @@ name: voom_app
 description: A new Flutter project.
 
 dependencies:
-  xml: "^3.0.0"
-  shared_preferences: "^0.4.1"
-  connectivity: "^0.3.0"
-  simple_permissions: "^0.1.2"
-  sqflite: "^0.8.9"
-  path_provider: "^0.3.1"
-  local_notifications: "^0.0.6"
-  image_picker: "^0.4.4"
+  xml: ^3.0.0
+  shared_preferences: ^0.4.1
+  connectivity: ^0.3.0
+  simple_permissions: ^0.1.2
+  sqflite: ^0.8.9
+  path_provider: ^0.3.1
+  local_notifications: ^0.0.6
+  image_picker: ^0.4.4
+  firebase_storage: ^0.3.7
   flutter:
     sdk: flutter
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:local_notifications/local_notifications.dart';
@@ -35,7 +36,7 @@ class Services {
   num lastSentLat;
   num lastSentLon;
 
-  String _host = "10.42.0.1"; //hostAddress;
+  String _host = hostAddress; //"10.42.0.1";
   String name = "andre";
   UserTitle title = UserTitle.User;
   List<UserCommand> commands = [];

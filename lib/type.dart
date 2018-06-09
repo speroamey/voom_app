@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:voom_app/fire-storage-service.dart';
 import 'package:voom_app/mainList.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/services.dart';
@@ -124,8 +126,27 @@ class _TypePageState extends State<TypePage> {
   setImage() async {
     File img = await ImagePicker.pickImage(source: ImageSource.gallery);
     image = img;
-    print(img.path);
+    fireStorage().then((FirebaseStorage storage) async {
+      final StorageReference reference =
+          storage.ref().child("vcard").child("identity");
+      reference.putFile(
+        img,
+        new StorageMetadata(
+          contentLanguage: 'fr',
+          customMetadata: <String, String>{'uploadImage': 'users image'},
+        ),
+      );
 
+      final String name = await reference.getName();
+      final String bucket = await reference.getBucket();
+      final String path = await reference.getPath();
+      final String url = await reference.getDownloadURL();
+
+      print("le premier $name");
+      print("le deuxième $bucket");
+      print("le troisième $path");
+      print("le dernier $url");
+    });
     setState(() {
       imgExiste = true;
     });
