@@ -14,30 +14,29 @@ class _NoLocationState extends State<NoLocation> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      body: new Container(
-          color: Colors.grey.shade300,
-          child: new Center(
-              child: new Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                new Text("Géolocalisation désactivée",
-                    style: new TextStyle(
-                        color: Colors.black,
-                        fontSize: 19.0,
-                        fontWeight: FontWeight.w400)),
-                new Switch(
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isActive = value;
-                        if (_isActive) {
-                          checkPermissions();
-                        }
-                      });
-                    },
-                    value: _isActive)
-              ]))),
-    );
+        body: new Container(
+            color: Colors.grey.shade300,
+            child: new Center(
+                child: new Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                  new Text("Géolocalisation désactivée",
+                      style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 19.0,
+                          fontWeight: FontWeight.w400)),
+                  new Switch(
+                      onChanged: (bool value) {
+                        setState(() {
+                          _isActive = value;
+                          if (_isActive) {
+                            checkPermissions();
+                          }
+                        });
+                      },
+                      value: _isActive)
+                ]))));
   }
 
   checkPermissions() async {

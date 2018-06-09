@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:local_notifications/local_notifications.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/src/core.dart';
 import 'package:voom_app/src/enums.dart';
@@ -20,7 +21,7 @@ class Services {
   Map<String, List<CoPublish>> _covoiturages = {};
   List<CoPublish> myCovoiturages = [];
   StreamController<List<Person>> _personsStream =
-      new StreamController.broadcast();
+      new StreamController<List<Person>>();
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
   static Services _instance;
@@ -300,6 +301,8 @@ class Services {
               this._covoiturages[from] = [coPub];
             }
           });
+          showNotifications("CHANNEL_COVOITURAGES", 2,
+              'Une publication de covoiturages', "$from a publié un trajet");
         }
       }
       return true;
@@ -309,6 +312,8 @@ class Services {
   void handleReceiptsMessage() {
     this._connection.addHandler((XmlElement msg) {
       print('handleReceiptsMessage $msg');
+      this.showNotifications("CHANNEL_COMMAND", 1, "Une nouvelle commande",
+          "Le chauffeur a repondu à  votre commande");
     }, Strophe.NS['RECEIPTS'], 'message', null, ':receipts', null,
         {'endsWithId': true});
   }
@@ -350,8 +355,10 @@ class Services {
           'blockquote': blockquote.length > 0 ? blockquote[0] : ''
         };
         this.addMessages(new AppMessage.fromMap(message));
-        if (_namespaceMatch(msg, Strophe.NS['RECEIPTS']))
-          sendReceiptsMessage(from, msg.getAttribute('id'));
+        this.showNotifications("CHANNEL_COMMAND", 1, "Une nouvelle commande",
+            "Un client vous a commandé");
+        /* if (_namespaceMatch(msg, Strophe.NS['RECEIPTS']))
+          sendReceiptsMessage(from, msg.getAttribute('id')); */
       }
       return true;
     }, null, 'message', 'chat');
@@ -512,6 +519,7 @@ class Services {
 
   void _addOrUpdatePerson(Person person) {
     if (person == null || person.phone == null) return;
+    if (_formatToJid(person.phone) == this.jid) return; // user self
     num distance = distVincenty(person.lat, person.long, this.lat, this.lon);
     if (distance == null || distance.isNaN) distance = 0.0;
     String str;
@@ -532,5 +540,40 @@ class Services {
 
   addCoVoiturage(CoPublish coPublish) {
     myCovoiturages.add(coPublish);
+  }
+
+  AndroidNotificationChannel channel;
+  int notificationId;
+  showNotifications(
+      String channelId, int notifId, String title, String content) async {
+    channel = new AndroidNotificationChannel(
+        id: channelId,
+        name: 'Default',
+        description: 'Grant this app the ability to show notifications',
+        importance: AndroidNotificationChannelImportance.HIGH);
+    await LocalNotifications.createAndroidNotificationChannel(channel: channel);
+    notificationId = notifId;
+// Create your notification, providing the channel info
+    await LocalNotifications.createNotification(
+        title: title,
+        content: content,
+        id: notificationId,
+        onNotificationClick: new NotificationAction(
+            actionText: "Voir",
+            payload: "COMMAND_CLIENT",
+            callback: onClickNotification),
+        androidSettings: new AndroidSettings(
+            channel: channel, vibratePattern: [1500, 1000]));
+  }
+
+  onClickNotification(String param) {
+    if (channel != null) {
+      LocalNotifications.removeAndroidNotificationChannel(channel: channel);
+      channel = null;
+    }
+    if (notificationId != null) {
+      LocalNotifications.removeNotification(notificationId);
+      notificationId = null;
+    }
   }
 }

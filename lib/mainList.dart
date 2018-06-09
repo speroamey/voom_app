@@ -40,33 +40,25 @@ class _MainListeState extends State<MainListe>
   TabController _tabCtrl;
 
   _getMyPosition() async {
-    bool check =
-        await SimplePermissions.checkPermission(Permission.AccessFineLocation);
-    if (!check) {
-      bool request = await SimplePermissions
-          .requestPermission(Permission.AccessFineLocation);
-      if (!request) {
-        _scalfoldKey.currentState.showSnackBar(new SnackBar(
-            content: new Text("Vous devez activer la géolocalisation")));
-        Navigator.of(context).pushAndRemoveUntil(
-            new MaterialPageRoute(builder: (BuildContext context) {
-          return new NoLocation();
-        }), ModalRoute.withName('/no-location'));
-        return;
-      }
-    }
-    Location location = new Location();
     try {
+      /* bool check = await SimplePermissions
+          .checkPermission(Permission.AccessFineLocation);
+      if (!check) {
+        bool request = await SimplePermissions
+            .requestPermission(Permission.AccessFineLocation);
+        if (!request) {
+          _scalfoldKey.currentState.showSnackBar(new SnackBar(
+              content: new Text("Vous devez activer la géolocalisation")));
+          Navigator.of(context).pushAndRemoveUntil(
+              new MaterialPageRoute(builder: (BuildContext context) {
+            return new NoLocation();
+          }), ModalRoute.withName('/no-location'));
+          return;
+        }
+      } */
+      Location location = new Location();
+
       _currentLocation = await location.getLocation;
-      print("_currentLocation $_currentLocation");
-      Services.instance.lat = _currentLocation['latitude'];
-      Services.instance.lon = _currentLocation['longitude'];
-    } on PlatformException {
-      _currentLocation = {};
-    }
-    location.onLocationChanged.listen((Map<String, double> currentLocation) {
-      _currentLocation = currentLocation;
-      print("on changed _currentLocation $_currentLocation");
       Services.instance.lat = _currentLocation['latitude'];
       Services.instance.lon = _currentLocation['longitude'];
       if (!Services.instance.isConnected) {
@@ -76,26 +68,43 @@ class _MainListeState extends State<MainListe>
               Strophe.Status['CONNFAIL']) {}
         });
       }
-      if (Services.instance.isConnected) {
-        num distance = distVincenty(
-            Services.instance.lastSentLat,
-            Services.instance.lastSentLon,
-            Services.instance.lat,
-            Services.instance.lon);
-        if (distance > 100) {
-          Services.instance.sendPresence();
+
+      location.onLocationChanged.listen((Map<String, double> currentLocation) {
+        _currentLocation = currentLocation;
+        Services.instance.lat = _currentLocation['latitude'];
+        Services.instance.lon = _currentLocation['longitude'];
+        if (!Services.instance.isConnected) {
+          Services.instance.login(Services.instance.jid,
+              (int status, condition, elem) {
+            if (status == Strophe.Status['CONNECTED']) {} else if (status ==
+                Strophe.Status['CONNFAIL']) {}
+          });
         }
-        // 6.356534 2.4047374 6.41070207 2.32084826
-        print("distance $distance");
-      }
-    });
+        if (Services.instance.isConnected) {
+          num distance = distVincenty(
+              Services.instance.lastSentLat,
+              Services.instance.lastSentLon,
+              Services.instance.lat,
+              Services.instance.lon);
+          if (distance > 100) {
+            Services.instance.sendPresence();
+          }
+          // 6.356534 2.4047374 6.41070207 2.32084826
+          print("distance $distance");
+        }
+      });
+    } catch (e) {
+      _scalfoldKey.currentState.showSnackBar(new SnackBar(
+          content: new Text("la recupération de votre position a echoué")));
+      _currentLocation = {};
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _tabCtrl = new TabController(vsync: this, length: 2);
-    _getMyPosition();
+    //_getMyPosition();
   }
 
   @override
@@ -139,9 +148,14 @@ class _MainListeState extends State<MainListe>
   }
 
   Widget _isDriverUser() {
-    return new TabBarView(
-        controller: _tabCtrl,
-        children: <Widget>[new ClientPage(), _isSimpleUser()]);
+    List<Widget> children = [];
+    if (_contactsOptions || _isSearch) {
+      children = [_isSimpleUser()];
+    } else {
+      children = [new ClientPage(), _isSimpleUser()];
+    }
+    var tab = new TabBarView(controller: _tabCtrl, children: children);
+    return tab;
   }
 
   Widget _isSimpleUser() {
