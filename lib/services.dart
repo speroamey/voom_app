@@ -31,8 +31,8 @@ class Services {
   String _domain = 'localhost';
   String _url;
 
-  num _lat;
-  num _lon;
+  num _lat = 6.3545;
+  num _lon = 2.4027;
   num lastSentLat;
   num lastSentLon;
 
@@ -196,11 +196,13 @@ class Services {
   }
 
   sendPresence() {
+    print('sendPresence');
     if (this._connection == null || !this._connection.connected) return;
     if (this.lat == null ||
         this.lon == null ||
         this.name == null ||
         this.title == null) return;
+    print('sendPresence2');
     this.lastSentLon = this.lat;
     this.lastSentLon = this.lon;
     String _title = this.title == UserTitle.User ? 'User' : 'Driver';
@@ -233,6 +235,7 @@ class Services {
           pres.up().cnode(publish.buildStanza());
       });
     }
+    print(pres.toString());
     _connection.sendPresence(pres.tree());
   }
 
