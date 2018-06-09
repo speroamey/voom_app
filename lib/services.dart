@@ -70,12 +70,12 @@ class Services {
         this.connexionCallback(-1, error, null);
       }
     };
-    for (int i = 0; i < 5; i++) {
+    /* for (int i = 0; i < 5; i++) {
       Person p = new Person("Nom du driver$i", "34 56 81 2$i", 6.345, 2.502);
       this._addOrUpdatePerson(p);
       this.commands.add(new UserCommand('depart$i', 'destination$i',
           new DateTime.now().millisecondsSinceEpoch, p));
-    }
+    } */
   }
   static Services get instance {
     if (_instance == null) _instance = Services._();
@@ -196,13 +196,16 @@ class Services {
   }
 
   sendPresence() {
-    print('sendPresence');
     if (this._connection == null || !this._connection.connected) return;
     if (this.lat == null ||
         this.lon == null ||
         this.name == null ||
         this.title == null) return;
-    print('sendPresence2');
+    if (true != true) {
+      this._connection.sendPresence(Strophe
+          .$pres({'id': this._connection.getUniqueId("sendOnLine")}).tree());
+      return;
+    }
     this.lastSentLon = this.lat;
     this.lastSentLon = this.lon;
     String _title = this.title == UserTitle.User ? 'User' : 'Driver';
@@ -258,24 +261,24 @@ class Services {
           return true;
         num distance = distVincenty(this._lat, this._lon,
             double.parse(lat[0].text), double.parse(lon[0].text));
-        if (distance <= 2000) {
-          // if presence lower than 2Km
-          Person p = new Person(name.length > 0 ? name[0].text : '', phone,
-              double.parse(lat[0].text), double.parse(lon[0].text));
-          List<XmlElement> notes = presence.findAllElements('note').toList();
-          if (notes.length > 0) {
-            p.note = notes[0].text;
-          }
-          List<XmlElement> availables =
-              presence.findAllElements('available').toList();
-          if (availables.length > 0) {
-            p.available = availables[0].text == 'true' ? true : false;
-            if (!p.available) {
-              this.deletePerson(p.phone);
-            }
-          }
-          if (p.available) this._addOrUpdatePerson(p);
+        //if (distance <= 5000) {
+        // if presence lower than 2Km
+        Person p = new Person(name.length > 0 ? name[0].text : '', phone,
+            double.parse(lat[0].text), double.parse(lon[0].text));
+        List<XmlElement> notes = presence.findAllElements('note').toList();
+        if (notes.length > 0) {
+          p.note = notes[0].text;
         }
+        List<XmlElement> availables =
+            presence.findAllElements('available').toList();
+        if (availables.length > 0) {
+          p.available = availables[0].text == 'true' ? true : false;
+          if (!p.available) {
+            this.deletePerson(p.phone);
+          }
+        }
+        if (p.available) this._addOrUpdatePerson(p);
+        // }
         List<XmlElement> covoiturages =
             presence.findAllElements('covoiturage').toList();
         if (covoiturages.length > 0) {

@@ -153,8 +153,9 @@ class _LoginState extends State<Login> {
       } else if (status == Strophe.Status['CONFLICT']) {
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
-          _scaffold.currentState.showSnackBar(
-              new SnackBar(content: new Text("Le contact existe deja")));
+          _onLogin();
+          /*  _scaffold.currentState.showSnackBar(
+              new SnackBar(content: new Text("Le contact existe deja"))); */
         }
       } else if (status == -1) {
         _scaffold.currentState.showSnackBar(new SnackBar(

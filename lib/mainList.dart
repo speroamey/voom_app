@@ -105,6 +105,7 @@ class _MainListeState extends State<MainListe>
     super.initState();
     _tabCtrl = new TabController(vsync: this, length: 2);
     //_getMyPosition();
+    _onLogin();
   }
 
   @override
@@ -346,9 +347,25 @@ class _MainListeState extends State<MainListe>
           value: ActionsMenu.covoiturage, child: const Text('Co-voiturages')));
       actionsMenu.add(const PopupMenuItem<ActionsMenu>(
           value: ActionsMenu.Settings, child: const Text('Paramètres')));
+      Widget title = new Text('Voom');
+      if (!Services.instance.isConnected) {
+        title = new Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          new Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: new Text('Voom')),
+          new SizedBox(
+              width: 18.0,
+              height: 18.0,
+              child: new Theme(
+                  data: new ThemeData(
+                      accentColor: Colors.white, primaryColor: Colors.white),
+                  child: new CircularProgressIndicator(
+                      backgroundColor: Colors.white, strokeWidth: 2.0)))
+        ]);
+      }
       appBar = new AppBar(
           automaticallyImplyLeading: false,
-          title: new Text('Voom'),
+          title: title,
           actions: <Widget>[
             new IconButton(
                 icon: new Icon(Icons.search),
@@ -383,6 +400,19 @@ class _MainListeState extends State<MainListe>
               : null);
     }
     return appBar;
+  }
+
+  _onLogin() async {
+    Services instance = Services.instance;
+    if (!instance.isConnected &&
+        instance.jid != null &&
+        instance.jid.isNotEmpty) {
+      instance.login(instance.jid, (int status, condition, elem) {
+        if (status == Strophe.Status['CONNECTED']) {
+          setState(() {});
+        }
+      });
+    }
   }
 
   _showCommandsActionSheet() {

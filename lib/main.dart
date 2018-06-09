@@ -76,7 +76,6 @@ class MyApp extends StatelessWidget {
       Services.instance.note = note ?? '';
       Services.instance.title =
           title == 'Driver' ? UserTitle.Driver : UserTitle.User;
-      print(phoneNumber);
       return (phoneNumber == null) ? new Home() : new MainListe();
     } catch (e) {
       return new Text(e.toString());
