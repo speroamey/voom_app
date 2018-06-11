@@ -5,6 +5,7 @@
 .vscode/
 .packages
 .pub/
+lib/server_addr.dart
 build/
 ios/.generated/
 packages

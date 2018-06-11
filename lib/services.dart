@@ -22,6 +22,7 @@ class Services {
   List<CoPublish> myCovoiturages = [];
   StreamController<List<Person>> _personsStream =
       new StreamController<List<Person>>();
+  StreamController<List<UserCommand>> _commandStream = new StreamController<List<UserCommand>>();
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
   static Services _instance;
@@ -325,46 +326,19 @@ class Services {
 
   void handleMessage() {
     this._connection.addHandler((XmlElement msg) {
+      print("im testing ");
       String from = msg.getAttribute('from');
       String to = msg.getAttribute('to');
       from = Strophe.getBareJidFromJid(from);
       from = this._formatToJid(from);
       to = Strophe.getBareJidFromJid(to);
       to = this._formatToJid(to);
-      if (!_namespaceMatch(msg, Strophe.NS['CHATSTATES'])) {
-        print('handleMessage $msg');
-        List<XmlElement> body = msg.findAllElements('body').toList();
-        if (body.length == 0) return true;
-        String id = '0';
-        List<XmlElement> p = body[0].findElements('p').toList();
-        if (p.length > 0) id = p[0].getAttribute('id') ?? '0';
-        if (id == '0') {
-          List<XmlElement> delay = body[0].findAllElements('delay').toList();
-          if (delay.length > 0) {
-            String stamp = delay[0].getAttribute('stamp');
-            if (stamp != null) {
-              id = DateTime.parse(stamp).millisecondsSinceEpoch.toString();
-            }
-          }
-        }
-        List<XmlElement> blockquote =
-            body[0].findAllElements('blockquote').toList();
-        Map<String, dynamic> message = {
-          'content': body[0].text.toString(),
-          'id': int.parse(id),
-          'date': int.parse(id),
-          'name': Strophe.getNodeFromJid(from),
-          'from': from,
-          'to': to,
-          'status': SentStatus.NONE,
-          'blockquote': blockquote.length > 0 ? blockquote[0] : ''
-        };
-        this.addMessages(new AppMessage.fromMap(message));
-        this.showNotifications("CHANNEL_COMMAND", 1, "Une nouvelle commande",
-            "Un client vous a commandé");
-        /* if (_namespaceMatch(msg, Strophe.NS['RECEIPTS']))
-          sendReceiptsMessage(from, msg.getAttribute('id')); */
-      }
+      List <XmlElement> msgUser = msg.findAllElements("p").toList();
+      
+     /*  UserCommand _usercCommands = new UserCommand("depart", msgUser.toString(), time, client);
+      this.commands.add(_usercCommands); */
+       showNotifications("CHANNEL_ORDER", 3,
+              'Vous avez reçu une commande de', "$from");
       return true;
     }, null, 'message', 'chat');
   }
@@ -513,11 +487,7 @@ class Services {
 
   void deletePerson(String from) {
     if (from == null || from.isEmpty) return;
-    from = Strophe.getNodeFromJid(from) ?? from;
-    print(this._persons);
     this._persons.remove(from);
-    print(this._persons);
-    print(from);
     this.deleteAllMessage(from);
     this._personsStream.add(this._sortPersons());
   }
