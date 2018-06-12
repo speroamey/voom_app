@@ -333,10 +333,13 @@ class Services {
       from = this._formatToJid(from);
       to = Strophe.getBareJidFromJid(to);
       to = this._formatToJid(to);
+      /* String time = msg.getAttribute('id'); */
+      int time=int.parse(msg.getAttribute('id'));
       List <XmlElement> msgUser = msg.findAllElements("p").toList();
-      
-     /*  UserCommand _usercCommands = new UserCommand("depart", msgUser.toString(), time, client);
-      this.commands.add(_usercCommands); */
+      Person p = _persons[from];
+      new DateTime(time);
+      UserCommand _usercCommands = new UserCommand("depart", msgUser.toString(),  time, p);
+      this.commands.add(_usercCommands);
        showNotifications("CHANNEL_ORDER", 3,
               'Vous avez reçu une commande de', "$from");
       return true;
