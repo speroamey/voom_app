@@ -358,7 +358,6 @@ class Services {
     msg.c('request', {'xmlns': Strophe.NS['RECEIPTS'], 'id': id});
     this._connection.send(msg.tree());
   }
-
   sendMessage(String jid, String message,
       {String userName = '', String blockquoteId = '', String replaceId}) {
     jid = this._formatToJid(jid);
