@@ -24,6 +24,7 @@ class Services {
       new StreamController<List<Person>>();
   StreamController<List<UserCommand>> _commandStream =
       new StreamController<List<UserCommand>>();
+
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
   static Services _instance;
@@ -327,23 +328,24 @@ class Services {
 
   void handleMessage() {
     this._connection.addHandler((XmlElement msg) {
-      print("im testing ");
       String from = msg.getAttribute('from');
       String to = msg.getAttribute('to');
       from = Strophe.getBareJidFromJid(from);
       from = this._formatToJid(from);
       to = Strophe.getBareJidFromJid(to);
       to = this._formatToJid(to);
+
+      int time = int.parse(msg.getAttribute('id')) ?? -1;
       List<XmlElement> msgUser = msg.findAllElements("p").toList();
-      Strophe.getNodeFromJid(from);
+      if (msgUser.length == 0) return true;
+      from = Strophe.getNodeFromJid(from) ?? from;
       Person p = _persons[from];
-      UserCommand _usercCommands =
-          new UserCommand("depart", msgUser.toString(), time, p);
-      this.commands.add(_usercCommands);
-      /*  UserCommand _usercCommands = new UserCommand("depart", msgUser.toString(), time, client);
-      this.commands.add(_usercCommands); */
+      UserCommand _userCommand =
+          new UserCommand("depart", msgUser[0].text, time, p);
+      this.commands.add(_userCommand);
       showNotifications(
           "CHANNEL_ORDER", 3, 'Vous avez reçu une commande de', "$from");
+      this._commandStream.add([]);
       return true;
     }, null, 'message', 'chat');
   }
@@ -439,6 +441,10 @@ class Services {
 
   Stream<List<Person>> get persons {
     return _personsStream.stream;
+  }
+
+  Stream<List<UserCommand>> get commandsStream {
+    return _commandStream.stream;
   }
 
   List<Person> _sortPersons([List<Person> listToSort]) {
