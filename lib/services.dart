@@ -22,7 +22,8 @@ class Services {
   List<CoPublish> myCovoiturages = [];
   StreamController<List<Person>> _personsStream =
       new StreamController<List<Person>>();
-  StreamController<List<UserCommand>> _commandStream = new StreamController<List<UserCommand>>();
+  StreamController<List<UserCommand>> _commandStream =
+      new StreamController<List<UserCommand>>();
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
   static Services _instance;
