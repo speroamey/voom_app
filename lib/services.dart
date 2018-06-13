@@ -336,6 +336,10 @@ class Services {
       to = this._formatToJid(to);
       List<XmlElement> msgUser = msg.findAllElements("p").toList();
       Strophe.getNodeFromJid(from);
+      Person p = _persons[from];
+      UserCommand _usercCommands =
+          new UserCommand("depart", msgUser.toString(), time, p);
+      this.commands.add(_usercCommands);
       /*  UserCommand _usercCommands = new UserCommand("depart", msgUser.toString(), time, client);
       this.commands.add(_usercCommands); */
       showNotifications(
@@ -356,6 +360,7 @@ class Services {
     msg.c('request', {'xmlns': Strophe.NS['RECEIPTS'], 'id': id});
     this._connection.send(msg.tree());
   }
+
   sendMessage(String jid, String message,
       {String userName = '', String blockquoteId = '', String replaceId}) {
     jid = this._formatToJid(jid);
