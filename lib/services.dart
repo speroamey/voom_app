@@ -334,7 +334,6 @@ class Services {
       from = this._formatToJid(from);
       to = Strophe.getBareJidFromJid(to);
       to = this._formatToJid(to);
-
       int time = int.parse(msg.getAttribute('id')) ?? -1;
       List<XmlElement> msgUser = msg.findAllElements("p").toList();
       if (msgUser.length == 0) return true;

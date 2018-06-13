@@ -135,7 +135,12 @@ class _MainListeState extends State<MainListe>
                   ? _isSimpleUser()
                   : _isDriverUser();
             }),
-        floatingActionButton: _buildFloatingBtn());
+        floatingActionButton: new StreamBuilder(
+            stream: Services.instance.commandsStream,
+            builder: (BuildContext context,
+                AsyncSnapshot<List<UserCommand>> snapchot) {
+              return _buildFloatingBtn();
+            }));
   }
 
   Widget _buildFloatingBtn() {
