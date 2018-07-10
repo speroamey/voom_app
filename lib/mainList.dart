@@ -454,12 +454,12 @@ class _MainListeState extends State<MainListe>
                             fontSize: 15.0,
                             fontWeight: FontWeight.w700,
                             color: Colors.grey)),
-                    title: new Text(command.client.name ?? '',
+                    title: new Text(command.client?.name ?? '',
                         overflow: TextOverflow.ellipsis),
                     subtitle: new Text(
                         "${command.depart}-${command.destination}",
                         overflow: TextOverflow.ellipsis),
-                    trailing: new Text("à $time",
+                    trailing: new Text("$time",
                         style: new TextStyle(
                             color: Colors.black54,
                             fontWeight: FontWeight.w300,

@@ -475,6 +475,7 @@ class Services {
     time +=
         ':${dateTime.minute.toString().length == 1?"0"+dateTime.minute.toString():dateTime.minute}';
     Duration difference = new DateTime.now().difference(dateTime);
+    time = 'à ' + time;
     if (difference.inDays == 1) {
       time = 'Hier';
     }
@@ -485,6 +486,7 @@ class Services {
           '/${dateTime.month.toString().length == 1?"0"+dateTime.month.toString():dateTime.month}';
       time +=
           '/${dateTime.year.toString().length == 1?"0"+dateTime.year.toString():dateTime.year}';
+      time = 'le ' + time;
     }
     return time;
   }
