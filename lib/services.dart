@@ -21,9 +21,9 @@ class Services {
   Map<String, List<CoPublish>> _covoiturages = {};
   List<CoPublish> myCovoiturages = [];
   StreamController<List<Person>> _personsStream =
-      new StreamController<List<Person>>();
+      new StreamController<List<Person>>(sync: true);
   StreamController<List<UserCommand>> _commandStream =
-      new StreamController<List<UserCommand>>();
+      new StreamController<List<UserCommand>>(sync: true);
 
   Map<String, List<AppMessage>> _messages = {};
   StropheConnection _connection;
@@ -72,12 +72,12 @@ class Services {
         this.connexionCallback(-1, error, null);
       }
     };
-    /* for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
       Person p = new Person("Nom du driver$i", "34 56 81 2$i", 6.345, 2.502);
       this._addOrUpdatePerson(p);
       this.commands.add(new UserCommand('depart$i', 'destination$i',
           new DateTime.now().millisecondsSinceEpoch, p));
-    } */
+    }
   }
   static Services get instance {
     if (_instance == null) _instance = Services._();

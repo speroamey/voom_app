@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:simple_permissions/simple_permissions.dart';
 import 'package:voom_app/clients.dart';
 import 'package:voom_app/co-voiturage.dart';
+import 'package:voom_app/commands.dart';
 import 'package:voom_app/details.dart';
 import 'package:voom_app/no-location.dart';
 import 'package:voom_app/personClass.dart';
 import 'package:voom_app/searchbar.dart';
 import 'package:location/location.dart';
-import 'package:simple_permissions/simple_permissions.dart';
 import 'package:voom_app/services.dart';
 import 'package:voom_app/settings.dart';
 import 'package:voom_app/src/core.dart';
@@ -41,7 +42,7 @@ class _MainListeState extends State<MainListe>
 
   _getMyPosition() async {
     try {
-      /* bool check = await SimplePermissions
+      bool check = await SimplePermissions
           .checkPermission(Permission.AccessFineLocation);
       if (!check) {
         bool request = await SimplePermissions
@@ -55,7 +56,7 @@ class _MainListeState extends State<MainListe>
           }), ModalRoute.withName('/no-location'));
           return;
         }
-      } */
+      }
       Location location = new Location();
 
       _currentLocation = await location.getLocation;
@@ -64,8 +65,8 @@ class _MainListeState extends State<MainListe>
       if (!Services.instance.isConnected) {
         Services.instance.login(Services.instance.jid,
             (int status, condition, elem) {
-          if (status == Strophe.Status['CONNECTED']) {} else if (status ==
-              Strophe.Status['CONNFAIL']) {}
+          if (status == Strophe.Status['CONNECTED']) {
+          } else if (status == Strophe.Status['CONNFAIL']) {}
         });
       }
 
@@ -76,8 +77,8 @@ class _MainListeState extends State<MainListe>
         if (!Services.instance.isConnected) {
           Services.instance.login(Services.instance.jid,
               (int status, condition, elem) {
-            if (status == Strophe.Status['CONNECTED']) {} else if (status ==
-                Strophe.Status['CONNFAIL']) {}
+            if (status == Strophe.Status['CONNECTED']) {
+            } else if (status == Strophe.Status['CONNFAIL']) {}
           });
         }
         if (Services.instance.isConnected) {
@@ -104,7 +105,7 @@ class _MainListeState extends State<MainListe>
   void initState() {
     super.initState();
     _tabCtrl = new TabController(vsync: this, length: 2);
-    //_getMyPosition();
+    _getMyPosition();
     _onLogin();
   }
 
@@ -537,65 +538,29 @@ class _MainListeState extends State<MainListe>
     } else {
       str = "Commander les ${_contactOptionsPinned.length} taximans";
     }
-    String destinationText = '';
-    final destination = new TextField(
-        autofocus: false,
-        onChanged: (String value) {
-          destinationText = value;
-        },
-        decoration: InputDecoration(
-            icon: new Icon(Icons.location_city),
-            labelText: "Voulez-vous aller à",
-            hintText: 'Saisissez votre destination',
-            contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0)));
-    showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext ctx) {
-          return new SimpleDialog(
-              titlePadding: new EdgeInsets.all(0.0),
-              contentPadding: new EdgeInsets.only(
-                  top: 12.0, bottom: 16.0, left: 10.0, right: 10.0),
-              title: new Container(
-                  padding: new EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 18.0),
-                  color: secondaryColor,
-                  child: new Text("$str",
-                      style: new TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.0,
-                          fontWeight: FontWeight.w800))),
-              children: <Widget>[
-                new Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: destination),
-                new ButtonTheme.bar(
-                    child: new ButtonBar(children: <Widget>[
-                  new FlatButton(
-                      child: new Text("Valider"),
-                      onPressed: () {
-                        List<int> tabs =
-                            i != null ? [i] : _contactOptionsPinned;
-                        tabs.forEach((int value) {
-                          Person contact = _contacts[value];
-                          Services.instance
-                              .sendMessage(contact.phone, destinationText);
-                          UserCommand userCmd = new UserCommand(
-                              'depart',
-                              '$destinationText',
-                              new DateTime.now().millisecondsSinceEpoch,
-                              contact);
-                          Services.instance.myCommands.add(userCmd);
-                        });
-                        setState(() {
-                          _contactOptionsPinned = [];
-                          _contactsOptions = false;
-                        });
-                        Navigator.of(context).pop();
-                      })
-                ]))
-              ]);
+    Navigator
+        .of(context)
+        .push<CommandInfo>(new MaterialPageRoute(builder: (BuildContext cxt) {
+      return new CommandPage(title: str);
+    })).then((CommandInfo result) {
+      if (result != null) {
+        List<int> tabs = i != null ? [i] : _contactOptionsPinned;
+        tabs.forEach((int value) {
+          Person contact = _contacts[value];
+          Services.instance.sendMessage(contact.phone, result.destinationText);
+          UserCommand userCmd = new UserCommand(
+              'depart',
+              '${result.destinationText}',
+              new DateTime.now().millisecondsSinceEpoch,
+              contact);
+          Services.instance.myCommands.add(userCmd);
         });
+      }
+      setState(() {
+        _contactOptionsPinned = [];
+        _contactsOptions = false;
+      });
+    });
   }
 
   void _showNoteDialog([int i, Person driver]) {
@@ -760,8 +725,8 @@ class NoteDialog extends StatefulWidget {
   final String str;
   final List<Person> contacts;
   final int i;
-  String initialValue;
-  List<int> contactOptionsPinned = [];
+  final String initialValue;
+  final List<int> contactOptionsPinned;
 
   NoteDialog(
       {this.str,
@@ -775,6 +740,14 @@ class NoteDialog extends StatefulWidget {
 }
 
 class _NoteDialogState extends State<NoteDialog> {
+  String initialValue;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    initialValue = widget.initialValue;
+  }
+
   @override
   Widget build(BuildContext context) {
     return new SimpleDialog(
@@ -808,13 +781,12 @@ class _NoteDialogState extends State<NoteDialog> {
                               child: new GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      widget.initialValue = value.toString();
+                                      initialValue = value.toString();
                                     });
                                   },
                                   child: new CircleAvatar(
                                       backgroundColor:
-                                          int.parse(widget.initialValue) ==
-                                                  value
+                                          int.parse(initialValue) == value
                                               ? primaryColor
                                               : Colors.grey.shade300,
                                       child: new Text('$value'))));
@@ -828,12 +800,12 @@ class _NoteDialogState extends State<NoteDialog> {
                             child: new GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  widget.initialValue = value.toString();
+                                  initialValue = value.toString();
                                 });
                               },
                               child: new CircleAvatar(
                                   backgroundColor:
-                                      int.parse(widget.initialValue) == value
+                                      int.parse(initialValue) == value
                                           ? primaryColor
                                           : Colors.grey.shade300,
                                   child: new Text('$value')),
@@ -853,14 +825,13 @@ class _NoteDialogState extends State<NoteDialog> {
                         : widget.contactOptionsPinned;
                     tabs.forEach((int value) {
                       Person contact = widget.contacts[value];
-                      Services.instance
-                          .sendNote(contact.phone, widget.initialValue);
-                      contact.note = widget.initialValue;
+                      Services.instance.sendNote(contact.phone, initialValue);
+                      contact.note = initialValue;
                     });
                   } else {
                     Services.instance
-                        .sendNote(widget.driver.phone, widget.initialValue);
-                    widget.driver.note = widget.initialValue;
+                        .sendNote(widget.driver.phone, initialValue);
+                    widget.driver.note = initialValue;
                   }
                   Navigator.of(context).pop();
                 })

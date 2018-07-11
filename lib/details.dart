@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:voom_app/commands.dart';
 import 'package:voom_app/personClass.dart';
+import 'package:voom_app/services.dart';
 
 class DetailsPage extends StatefulWidget {
   final Person driver;
@@ -26,7 +28,7 @@ class _DetailsPageState extends State<DetailsPage> {
             height: height * 0.7,
             child: new Stack(children: <Widget>[
               new Column(children: <Widget>[
-                new Expanded( 
+                new Expanded(
                     child: new Container(
                         decoration: new BoxDecoration(
                             image: new DecorationImage(
@@ -87,7 +89,9 @@ class _DetailsPageState extends State<DetailsPage> {
                                       child: new Text("Commander",
                                           style: new TextStyle(
                                               color: Colors.black)),
-                                      onPressed: () {}))
+                                      onPressed: () {
+                                        command();
+                                      }))
                             ]))))
               ]),
               new Positioned(
@@ -137,5 +141,24 @@ class _DetailsPageState extends State<DetailsPage> {
             title: new Text("1.5 km de chez moi"), subtitle: new Text("12/100"))
       ])))
     ]));
+  }
+
+  void command() {
+    Navigator
+        .of(context)
+        .push<CommandInfo>(new MaterialPageRoute(builder: (BuildContext cxt) {
+      return new CommandPage(title: 'Commander ');
+    })).then((CommandInfo result) {
+      if (result != null) {
+        Services.instance
+            .sendMessage(widget.driver.phone, result.destinationText);
+        UserCommand userCmd = new UserCommand(
+            'depart',
+            '${result.destinationText}',
+            new DateTime.now().millisecondsSinceEpoch,
+            widget.driver);
+        Services.instance.myCommands.add(userCmd);
+      }
+    });
   }
 }
